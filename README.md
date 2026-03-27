@@ -23,12 +23,18 @@ python3 ministack.py prompt
 ### 방법 C: 통합 실행 스크립트 (추천)
 모든 환경에서 가장 간편하게 실행하는 방법입니다. 자동으로 사용 가능한 엔진(Bun 또는 Python)을 선택합니다.
 ```bash
-# 최초 1회 실행 권한 부여
 chmod +x ministack.sh
-
-# 실행
 ./ministack.sh start feature
-./ministack.sh prompt
+```
+
+### 방법 D: 언어별 전용 스크립트
+특정 엔진을 명시적으로 사용하고 싶을 때 사용합니다.
+```bash
+# Python 전용
+./ministack-py.sh status
+
+# Bun(TS) 전용
+./ministack-ts.sh status
 ```
 
 > [!TIP]
