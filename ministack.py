@@ -93,6 +93,23 @@ def next_step():
     print(f"다음 단계({state['step']})로 이동했습니다.")
     show_status()
 
+def set_step(step_num):
+    state = load_state()
+    if not state.get("workflow"):
+        print("진행 중인 워크플로우가 없습니다.")
+        return
+    try:
+        new_step = int(step_num)
+        if new_step < 1:
+            print("단계는 1보다 커야 합니다.")
+            return
+        state["step"] = new_step
+        save_state(state)
+        print(f"{new_step}단계로 직접 이동했습니다.")
+        show_status()
+    except ValueError:
+        print("Error: 올바른 단계 숫자(정수)를 입력하세요.")
+
 def prev_step():
     state = load_state()
     current_step = int(state.get("step", 0))
@@ -184,6 +201,11 @@ def main():
         next_step()
     elif cmd == "back":
         prev_step()
+    elif cmd == "set":
+        if len(sys.argv) < 3:
+            print("Usage: python3 ministack.py set <step_number>")
+        else:
+            set_step(sys.argv[2])
     elif cmd == "prompt":
         user_msg = " ".join(sys.argv[2:]) if len(sys.argv) > 2 else None
         generate_prompt(user_msg)

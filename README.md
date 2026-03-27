@@ -44,6 +44,8 @@ bun ministack.ts prompt
 - `status`: 현재 진행 중인 단계 및 워크플로우 확인
 - `next`: 다음 단계로 이동
 - `back`: 이전 단계로 이동 (루프 회귀 시 사용)
+- `set <number>`: 특정 단계로 직접 이동
+    * 예: `python3 ministack.py set 5`
 - `prompt [message]`: 현재 단계에 최적화된 프롬프트 생성. 뒤에 지시 사항을 추가하면 AI에게 함께 전달됩니다.
     * 예: `python3 ministack.py prompt "코드 보안을 집중적으로 봐줘"`
 

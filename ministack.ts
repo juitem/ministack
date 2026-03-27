@@ -157,6 +157,21 @@ switch (cmd) {
       console.log(`이전 단계(${ps.step})로 이동했습니다.`);
     }
     break;
+  case "set":
+    const ssSet = loadState();
+    if (!ssSet.workflow) {
+      console.log("진행 중인 워크플로우가 없습니다.");
+      break;
+    }
+    const targetStep = parseInt(args[1]);
+    if (!isNaN(targetStep) && targetStep >= 1) {
+      ssSet.step = targetStep;
+      saveState(ssSet);
+      console.log(`${targetStep}단계로 직접 이동했습니다.`);
+    } else {
+      console.log("Usage: bun ministack.ts set <step_number>");
+    }
+    break;
   case "status":
     const ss = loadState();
     console.log(`[Bun 상태] 워크플로우: ${ss.workflow}, 단계: ${ss.step}`);
