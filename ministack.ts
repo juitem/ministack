@@ -1,22 +1,40 @@
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync, readdirSync } from "fs";
 import path from "path";
 
-// 경로 설정
-const BASE_DIR = import.meta.dir;
-const ROLES_DIR = path.join(BASE_DIR, "roles");
-const WORKFLOWS_DIR = path.join(BASE_DIR, "workflows");
-const STATE_FILE = path.join(BASE_DIR, "state.json");
-const DOCS_DIR = path.join(BASE_DIR, "docs");
+// [중요] 경로 설계 개편 (Global Tooling 대응)
+// GLOBAL_DIR: 스크립트가 실제 위치한 곳 (전역 템플릿)
+// PROJECT_DIR: 사용자가 현재 명령어를 실행한 곳 (로컬 프로젝트)
 
-// 디렉토리 초기화
-[ROLES_DIR, WORKFLOWS_DIR, DOCS_DIR].forEach((d) => {
-  if (!existsSync(d)) mkdirSync(d, { recursive: true });
-});
+const GLOBAL_DIR = import.meta.dir;
+const PROJECT_DIR = process.cwd();
+
+const GLOBAL_ROLES_DIR = path.join(GLOBAL_DIR, "roles");
+const GLOBAL_WORKFLOWS_DIR = path.join(GLOBAL_DIR, "workflows");
+
+const LOCAL_ROLES_DIR = path.join(PROJECT_DIR, "roles");
+const LOCAL_WORKFLOWS_DIR = path.join(PROJECT_DIR, "workflows");
+const DOCS_DIR = path.join(PROJECT_DIR, "docs");
+const STATE_FILE = path.join(PROJECT_DIR, "state.json");
+
+// 디렉토리 초기화 (프로젝트별 산출물 폴더)
+if (!existsSync(DOCS_DIR)) mkdirSync(DOCS_DIR, { recursive: true });
 
 interface State {
   workflow: string;
   step: number;
   role: string;
+}
+
+function getResourcePath(type: "role" | "workflow", name: string): string {
+  const localPath = path.join(
+    type === "role" ? LOCAL_ROLES_DIR : LOCAL_WORKFLOWS_DIR,
+    `${name}.md`
+  );
+  const globalPath = path.join(
+    type === "role" ? GLOBAL_ROLES_DIR : GLOBAL_WORKFLOWS_DIR,
+    `${name}.md`
+  );
+  return existsSync(localPath) ? localPath : globalPath;
 }
 
 function loadState(): State {
@@ -35,21 +53,37 @@ function saveState(state: State) {
 }
 
 function listItems() {
+  console.log(`\n[실행 위치]: ${PROJECT_DIR}`);
   console.log("\n--- [사용 가능한 역할(Roles)] ---");
-  import("fs").then((fs) => {
-    fs.readdirSync(ROLES_DIR)
-      .filter((f) => f.endsWith(".md"))
-      .forEach((f) => console.log(`- ${f.slice(0, -3)}`));
 
-    console.log("\n--- [사용 가능한 워크플로우(Workflows)] ---");
-    fs.readdirSync(WORKFLOWS_DIR)
-      .filter((f) => f.endsWith(".md"))
-      .forEach((f) => console.log(`- ${f.slice(0, -3)}`));
+  const roles = new Set<string>();
+  [GLOBAL_ROLES_DIR, LOCAL_ROLES_DIR].forEach((d) => {
+    if (existsSync(d)) {
+      readdirSync(d)
+        .filter((f) => f.endsWith(".md"))
+        .forEach((f) => roles.add(f.slice(0, -3)));
+    }
   });
+  Array.from(roles)
+    .sort()
+    .forEach((r) => console.log(`- ${r}`));
+
+  console.log("\n--- [사용 가능한 워크플로우(Workflows)] ---");
+  const wfs = new Set<string>();
+  [GLOBAL_WORKFLOWS_DIR, LOCAL_WORKFLOWS_DIR].forEach((d) => {
+    if (existsSync(d)) {
+      readdirSync(d)
+        .filter((f) => f.endsWith(".md"))
+        .forEach((f) => wfs.add(f.slice(0, -3)));
+    }
+  });
+  Array.from(wfs)
+    .sort()
+    .forEach((w) => console.log(`- ${w}`));
 }
 
 function startWorkflow(name: string) {
-  const workflowPath = path.join(WORKFLOWS_DIR, `${name}.md`);
+  const workflowPath = getResourcePath("workflow", name);
   if (!existsSync(workflowPath)) {
     console.error(`Error: 워크플로우 '${name}'을 찾을 수 없습니다.`);
     return;
@@ -57,7 +91,7 @@ function startWorkflow(name: string) {
 
   const state: State = { workflow: name, step: 1, role: "market_researcher" };
   saveState(state);
-  console.log(`'${name}' 워크플로우를 (Bun 버전으로) 시작합니다. (1단계)`);
+  console.log(`새 프로젝트에서 '${name}' 워크플로우를 시작합니다. (1단계)`);
 }
 
 async function listSteps() {
@@ -66,16 +100,13 @@ async function listSteps() {
     console.log("진행 중인 워크플로우가 없습니다.");
     return;
   }
-  const wfPath = path.join(WORKFLOWS_DIR, `${state.workflow}.md`);
+  const wfPath = getResourcePath("workflow", state.workflow);
   if (existsSync(wfPath)) {
     const text = await Bun.file(wfPath).text();
     console.log(`\n--- [워크플로우 '${state.workflow}'의 전체 단계] ---`);
     text.split("\n").forEach((line) => {
       if (line.includes("단계:")) console.log(line.trim());
     });
-    console.log(
-      "\n'bun ministack.ts set <번호>'로 원하는 단계로 이동할 수 있습니다."
-    );
   }
 }
 
@@ -98,7 +129,7 @@ async function generatePrompt(userMessage?: string) {
       7: "engineer",
       8: "reviewer",
       9: "security_reviewer",
-      10: "engineer"
+      10: "engineer",
     };
   } else {
     roleMap = {
@@ -106,13 +137,13 @@ async function generatePrompt(userMessage?: string) {
       2: "engineer",
       3: "reviewer",
       4: "qa",
-      5: "engineer"
+      5: "engineer",
     };
   }
 
   const roleName = roleMap[state.step] || "engineer";
-  const rolePath = path.join(ROLES_DIR, `${roleName}.md`);
-  const workflowPath = path.join(WORKFLOWS_DIR, `${state.workflow}.md`);
+  const rolePath = getResourcePath("role", roleName);
+  const workflowPath = getResourcePath("workflow", state.workflow);
 
   let promptContent = "--- [AGENT ROLE] ---\n";
   if (existsSync(rolePath)) {
@@ -149,7 +180,7 @@ async function generatePrompt(userMessage?: string) {
   }
 
   console.log("\n" + "=".repeat(50));
-  console.log(`[${roleName.toUpperCase()} 프롬프트 생성 (Bun 버전)]`);
+  console.log(`[${roleName.toUpperCase()} 프롬프트 생성 (CWD 모드)]`);
   console.log("=".repeat(50) + "\n");
   console.log(promptContent);
   console.log("\n" + "=".repeat(50));
@@ -157,17 +188,17 @@ async function generatePrompt(userMessage?: string) {
 
 function showHelp() {
   const helpText = `
-MiniStack CLI (Bun 버전) 사용 가이드
+MiniStack CLI (전역 엔진: ${GLOBAL_DIR})
 
 명령어:
   list                  사용 가능한 역할과 워크플로우 목록을 출력합니다.
-  start <workflow>      새로운 워크플로우를 시작합니다. (예: start feature)
+  start <workflow>      현재 폴더에서 새로운 프로젝트를 시작합니다.
   status                현재 진행 중인 단계의 상태를 출력합니다.
   steps                 현재 워크플로우의 전체 단계 목록을 보여줍니다.
-  next                  다음 단계로 1칸 이동합니다.
-  back                  이전 단계로 1칸 이동합니다.
-  set <number>          특정 단계 번호로 즉시 이동합니다. (예: set 5)
-  prompt [message]      현재 단계에 최적화된 AI 프롬프트를 생성합니다. 
+  next                  다음 단계로 이동합니다.
+  back                  이전 단계로 이동합니다.
+  set <number>          특정 단계 번호로 이동합니다.
+  prompt [message]      현재 단계에 최적화된 프롬프트를 생성합니다. 
   help                  이 도움말을 출력합니다.
 `;
   console.log(helpText);
@@ -189,11 +220,12 @@ switch (cmd) {
     break;
   case "start":
     if (args[1]) startWorkflow(args[1]);
-    else console.log("Usage: bun ministack.ts start <name>");
+    else console.log("Usage: ministack start <name>");
     break;
   case "status":
     const ss = loadState();
-    console.log(`[Bun 상태] 워크플로우: ${ss.workflow}, 단계: ${ss.step}`);
+    console.log(`\n[현재 프로젝트] 경로: ${PROJECT_DIR}`);
+    console.log(`[로그] 워크플로우: ${ss.workflow}, 단계: ${ss.step}`);
     break;
   case "steps":
     listSteps();
@@ -224,7 +256,7 @@ switch (cmd) {
       saveState(ssSet);
       console.log(`${targetStep}단계로 직접 이동했습니다.`);
     } else {
-      console.log("Usage: bun ministack.ts set <step_number>");
+      console.log("Usage: ministack set <step_number>");
     }
     break;
   case "prompt":

@@ -2,17 +2,35 @@ import os
 import json
 import sys
 
-# 경로 설정
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-ROLES_DIR = os.path.join(BASE_DIR, 'roles')
-WORKFLOWS_DIR = os.path.join(BASE_DIR, 'workflows')
-STATE_FILE = os.path.join(BASE_DIR, 'state.json')
-DOCS_DIR = os.path.join(BASE_DIR, 'docs') # 산출물 저장소
+# [중요] 경로 설계 개편 (Global Tooling 대응)
+# GLOBAL_DIR: 스크립트가 실제 위치한 곳 (전역 템플릿)
+# PROJECT_DIR: 사용자가 현재 명령어를 실행한 곳 (로컬 프로젝트)
 
-# 디렉토리 초기화
-for d in [ROLES_DIR, WORKFLOWS_DIR, DOCS_DIR]:
-    if not os.path.exists(d):
-        os.makedirs(d)
+GLOBAL_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_DIR = os.getcwd()
+
+# 1. 전역 리소스 경로 (템플릿)
+GLOBAL_ROLES_DIR = os.path.join(GLOBAL_DIR, 'roles')
+GLOBAL_WORKFLOWS_DIR = os.path.join(GLOBAL_DIR, 'workflows')
+
+# 2. 로컬 프로젝트 리소스 경로 (오버라이드 가능/산출물 저장)
+LOCAL_ROLES_DIR = os.path.join(PROJECT_DIR, 'roles')
+LOCAL_WORKFLOWS_DIR = os.path.join(PROJECT_DIR, 'workflows')
+DOCS_DIR = os.path.join(PROJECT_DIR, 'docs')
+STATE_FILE = os.path.join(PROJECT_DIR, 'state.json')
+
+# 필요한 디렉토리 초기화 (프로젝트별로 docs 생성)
+if not os.path.exists(DOCS_DIR):
+    os.makedirs(DOCS_DIR)
+
+def get_resource_path(resource_type, name):
+    """로컬에 파일이 있으면 로컬을, 없으면 전역 템플릿을 반환"""
+    local_path = os.path.join(LOCAL_ROLES_DIR if resource_type == 'role' else LOCAL_WORKFLOWS_DIR, f"{name}.md")
+    global_path = os.path.join(GLOBAL_ROLES_DIR if resource_type == 'role' else GLOBAL_WORKFLOWS_DIR, f"{name}.md")
+    
+    if os.path.exists(local_path):
+        return local_path
+    return global_path
 
 def load_state():
     if os.path.exists(STATE_FILE):
@@ -33,17 +51,23 @@ def save_state(state):
         json.dump(state, f, ensure_ascii=False, indent=2)
 
 def list_items():
+    print(f"\n[실행 위치]: {PROJECT_DIR}")
     print("\n--- [사용 가능한 역할(Roles)] ---")
-    if os.path.exists(ROLES_DIR):
-        for f in sorted(os.listdir(ROLES_DIR)):
-            if f.endswith('.md'):
-                print(f"- {f[:-3]}")
+    # 전역 + 로컬 역할 합치기 (중복 제거)
+    roles = set()
+    for d in [GLOBAL_ROLES_DIR, LOCAL_ROLES_DIR]:
+        if os.path.exists(d):
+            for f in os.listdir(d):
+                if f.endswith('.md'): roles.add(f[:-3])
+    for r in sorted(roles): print(f"- {r}")
     
     print("\n--- [사용 가능한 워크플로우(Workflows)] ---")
-    if os.path.exists(WORKFLOWS_DIR):
-        for f in sorted(os.listdir(WORKFLOWS_DIR)):
-            if f.endswith('.md'):
-                print(f"- {f[:-3]}")
+    wfs = set()
+    for d in [GLOBAL_WORKFLOWS_DIR, LOCAL_WORKFLOWS_DIR]:
+        if os.path.exists(d):
+            for f in os.listdir(d):
+                if f.endswith('.md'): wfs.add(f[:-3])
+    for w in sorted(wfs): print(f"- {w}")
 
 def list_steps():
     state = load_state()
@@ -52,9 +76,9 @@ def list_steps():
         print("진행 중인 워크플로우가 없습니다.")
         return
     
-    path = os.path.join(WORKFLOWS_DIR, f"{workflow_name}.md")
+    path = get_resource_path('workflow', workflow_name)
     if not os.path.exists(path):
-        print(f"Error: 워크플로우 파일을 찾을 수 없습니다.")
+        print(f"Error: 워크플로우 파일을 찾을 수 없습니다. ({path})")
         return
 
     print(f"\n--- [워크플로우 '{workflow_name}'의 전체 단계] ---")
@@ -62,32 +86,32 @@ def list_steps():
         for line in f:
             if "단계:" in line:
                 print(line.strip())
-    print("\n'python3 ministack.py set <번호>'로 원하는 단계로 이동할 수 있습니다.")
 
 def start_workflow(name):
-    path = os.path.join(WORKFLOWS_DIR, f"{name}.md")
+    path = get_resource_path('workflow', name)
     if not os.path.exists(path):
         print(f"Error: 워크플로우 '{name}'을 찾을 수 없습니다.")
         return
     
     state = {"workflow": str(name), "step": 1, "role": "market_researcher"}
     save_state(state)
-    print(f"'{name}' 워크플로우를 시작합니다. (1단계: 시장 조사)")
+    print(f"새 프로젝트에서 '{name}' 워크플로우를 시작합니다. (1단계)")
     show_status()
 
 def show_status():
     state = load_state()
     workflow_name = state.get("workflow")
     if not workflow_name:
-        print("진행 중인 워크플로우가 없습니다. 'python3 ministack.py start <name>'으로 시작하세요.")
+        print("진행 중인 워크플로우가 없습니다. 'ministack start <name>'으로 시작하세요.")
         return
     
     current_step = int(state.get("step", 1))
-    print(f"\n[현재 상태]")
+    print(f"\n[현재 프로젝트 상태]")
+    print(f"- 경로: {PROJECT_DIR}")
     print(f"- 워크플로우: {workflow_name}")
     print(f"- 단계: {current_step}")
     
-    path = os.path.join(WORKFLOWS_DIR, f"{workflow_name}.md")
+    path = get_resource_path('workflow', workflow_name)
     if os.path.exists(path):
         with open(path, 'r', encoding='utf-8') as f:
             lines = f.readlines()
@@ -149,32 +173,14 @@ def generate_prompt(user_message=None):
     
     current_step = int(state.get("step", 1))
     
-    # 워크플로우별 역할 매핑
     if workflow_name == "feature":
-        role_map = {
-            1: "market_researcher",
-            2: "researcher",
-            3: "product",
-            4: "concept_reviewer",
-            5: "architect",
-            6: "architect",
-            7: "engineer",
-            8: "reviewer",
-            9: "security_reviewer",
-            10: "engineer"
-        }
+        role_map = {1: "market_researcher", 2: "researcher", 3: "product", 4: "concept_reviewer", 5: "architect", 6: "architect", 7: "engineer", 8: "reviewer", 9: "security_reviewer", 10: "engineer"}
     else:
-        role_map = {
-            1: "researcher",
-            2: "engineer",
-            3: "reviewer",
-            4: "qa",
-            5: "engineer"
-        }
+        role_map = {1: "researcher", 2: "engineer", 3: "reviewer", 4: "qa", 5: "engineer"}
     
     role_name = role_map.get(current_step, "engineer")
-    role_path = os.path.join(ROLES_DIR, f"{role_name}.md")
-    workflow_path = os.path.join(WORKFLOWS_DIR, f"{workflow_name}.md")
+    role_path = get_resource_path('role', role_name)
+    workflow_path = get_resource_path('workflow', workflow_name)
     
     prompt_content = "--- [AGENT ROLE] ---\n"
     if os.path.exists(role_path):
@@ -206,23 +212,22 @@ def generate_prompt(user_message=None):
     
     print("\n" + "="*50)
     print(f"[{role_name.upper()} 프롬프트 생성 완료]")
-    print("다음 내용을 복사하여 AI 에이전트에게 전달하세요:")
     print("="*50 + "\n")
     print(prompt_content)
     print("\n" + "="*50)
 
 def show_help():
-    help_text = """
-MiniStack CLI 사용 가이드
+    help_text = f"""
+MiniStack CLI (위치: {GLOBAL_DIR})
 
 명령어:
-  list                  사용 가능한 역할과 워크플로우 목록을 출력합니다.
-  start <workflow>      새로운 워크플로우를 시작합니다. (예: start feature)
+  list                  사용 가능한 역할과 워크플로우 목록을 출력합니다. (Global/Local 합계)
+  start <workflow>      현재 폴더에서 새로운 프로젝트 워크플로우를 시작합니다.
   status                현재 진행 중인 단계의 상세 정보를 출력합니다.
   steps                 현재 워크플로우의 전체 단계 목록을 보여줍니다.
-  next                  다음 단계로 1칸 이동합니다.
-  back                  이전 단계로 1칸 이동합니다.
-  set <number>          특정 단계 번호로 즉시 이동합니다. (예: set 5)
+  next                  다음 단계로 이동합니다.
+  back                  이전 단계로 이동합니다.
+  set <number>          특정 단계 번호로 이동합니다.
   prompt [message]      현재 단계에 최적화된 AI 프롬프트를 생성합니다. 
   help                  이 도움말을 출력합니다.
 """
@@ -240,7 +245,7 @@ def main():
         list_items()
     elif cmd == "start":
         if len(sys.argv) < 3:
-            print("Usage: python3 ministack.py start <workflow_name>")
+            print("Usage: ministack start <workflow_name>")
         else:
             start_workflow(sys.argv[2])
     elif cmd == "status":
@@ -253,7 +258,7 @@ def main():
         prev_step()
     elif cmd == "set":
         if len(sys.argv) < 3:
-            print("Usage: python3 ministack.py set <step_number>")
+            print("Usage: ministack set <step_number>")
         else:
             set_step(sys.argv[2])
     elif cmd == "prompt":
