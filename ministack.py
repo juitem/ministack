@@ -201,13 +201,33 @@ def generate_prompt(user_message=None):
     print(prompt_content)
     print("\n" + "="*50)
 
+def show_help():
+    help_text = """
+MiniStack CLI 사용 가이드
+
+명령어:
+  list                  사용 가능한 역할과 워크플로우 목록을 출력합니다.
+  start <workflow>      새로운 워크플로우를 시작합니다. (예: start feature)
+  status                현재 진행 중인 단계의 상세 정보를 출력합니다.
+  steps                 현재 워크플로우의 전체 단계 목록을 보여줍니다.
+  next                  다음 단계로 1칸 이동합니다.
+  back                  이전 단계로 1칸 이동합니다.
+  set <number>          특정 단계 번호로 즉시 이동합니다. (예: set 5)
+  prompt [message]      현재 단계에 최적화된 AI 프롬프트를 생성합니다. 
+                        뒤에 메시지를 추가하여 추가 지시를 내릴 수 있습니다.
+  help                  이 도움말을 출력합니다.
+"""
+    print(help_text)
+
 def main():
     if len(sys.argv) < 2:
-        print("Usage: python3 ministack.py [list|start|status|steps|next|back|set|prompt]")
+        show_help()
         return
     
-    cmd = sys.argv[1]
-    if cmd == "list":
+    cmd = sys.argv[1].lower()
+    if cmd in ["help", "-h", "--help"]:
+        show_help()
+    elif cmd == "list":
         list_items()
     elif cmd == "start":
         if len(sys.argv) < 3:
@@ -232,6 +252,7 @@ def main():
         generate_prompt(user_msg)
     else:
         print(f"Unknown command: {cmd}")
+        show_help()
 
 if __name__ == "__main__":
     main()

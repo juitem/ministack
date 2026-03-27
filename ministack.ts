@@ -143,11 +143,36 @@ async function generatePrompt(userMessage?: string) {
   console.log("\n" + "=".repeat(50));
 }
 
+function showHelp() {
+  const helpText = `
+MiniStack CLI (Bun 버전) 사용 가이드
+
+명령어:
+  list                  사용 가능한 역할과 워크플로우 목록을 출력합니다.
+  start <workflow>      새로운 워크플로우를 시작합니다. (예: start feature)
+  status                현재 진행 중인 단계의 상태를 출력합니다.
+  steps                 현재 워크플로우의 전체 단계 목록을 보여줍니다.
+  next                  다음 단계로 1칸 이동합니다.
+  back                  이전 단계로 1칸 이동합니다.
+  set <number>          특정 단계 번호로 즉시 이동합니다. (예: set 5)
+  prompt [message]      현재 단계에 최적화된 AI 프롬프트를 생성합니다. 
+                        뒤에 메시지를 추가하여 추가 지시를 내릴 수 있습니다.
+  help                  이 도움말을 출력합니다.
+`;
+  console.log(helpText);
+}
+
 // CLI 로직
 const args = Bun.argv.slice(2);
-const cmd = args[0];
+const cmd = (args[0] || "").toLowerCase();
 
 switch (cmd) {
+  case "help":
+  case "-h":
+  case "--help":
+  case "":
+    showHelp();
+    break;
   case "list":
     listItems();
     break;
@@ -196,7 +221,6 @@ switch (cmd) {
     generatePrompt(userMsg || undefined);
     break;
   default:
-    console.log(
-      "Usage: bun ministack.ts [list|start|status|steps|next|back|set|prompt]"
-    );
+    console.log(`Unknown command: ${cmd}`);
+    showHelp();
 }
