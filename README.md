@@ -20,16 +20,19 @@ python3 ministack.py status
 python3 ministack.py prompt
 ```
 
-### 방법 B: Bun (TypeScript) 버전
-Bun 런타임 환경에서 실행합니다.
+### 방법 C: 통합 실행 스크립트 (추천)
+모든 환경에서 가장 간편하게 실행하는 방법입니다. 자동으로 사용 가능한 엔진(Bun 또는 Python)을 선택합니다.
 ```bash
-bun ministack.ts start feature
-bun ministack.ts status
-bun ministack.ts prompt
+# 최초 1회 실행 권한 부여
+chmod +x ministack.sh
+
+# 실행
+./ministack.sh start feature
+./ministack.sh prompt
 ```
 
 > [!TIP]
-> 두 엔진은 `state.json`을 공유하므로, 파이썬으로 시작한 작업을 번(Bun)으로 이어가는 등 교차 사용이 가능합니다.
+> `alias ministack='/absolute/path/to/ministack.sh'`를 쉘 설정(`.zshrc` 등)에 추가하면 어디서든 `ministack` 명령어로 사용할 수 있습니다.
 
 ## 📂 디렉토리 구조
 - `roles/`: 각 전문가 페르소나 정의 (`senior-engineer`, `product-manager` 등)
