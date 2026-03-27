@@ -1,0 +1,21 @@
+# MiniStack State
+state.json
+
+# Tool Generated Docs (Optional: Keep if you want to track project history)
+# docs/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+env/
+venv/
+.env
+
+# Bun / Node
+node_modules/
+bun.lockb
+
+# OS
+.DS_Store
