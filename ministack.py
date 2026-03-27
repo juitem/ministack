@@ -45,6 +45,25 @@ def list_items():
             if f.endswith('.md'):
                 print(f"- {f[:-3]}")
 
+def list_steps():
+    state = load_state()
+    workflow_name = state.get("workflow")
+    if not workflow_name:
+        print("진행 중인 워크플로우가 없습니다.")
+        return
+    
+    path = os.path.join(WORKFLOWS_DIR, f"{workflow_name}.md")
+    if not os.path.exists(path):
+        print(f"Error: 워크플로우 파일을 찾을 수 없습니다.")
+        return
+
+    print(f"\n--- [워크플로우 '{workflow_name}'의 전체 단계] ---")
+    with open(path, 'r', encoding='utf-8') as f:
+        for line in f:
+            if "단계:" in line:
+                print(line.strip())
+    print("\n'python3 ministack.py set <번호>'로 원하는 단계로 이동할 수 있습니다.")
+
 def start_workflow(name):
     path = os.path.join(WORKFLOWS_DIR, f"{name}.md")
     if not os.path.exists(path):
@@ -184,7 +203,7 @@ def generate_prompt(user_message=None):
 
 def main():
     if len(sys.argv) < 2:
-        print("Usage: python3 ministack.py [list|start|status|next|back|prompt]")
+        print("Usage: python3 ministack.py [list|start|status|steps|next|back|set|prompt]")
         return
     
     cmd = sys.argv[1]
@@ -197,6 +216,8 @@ def main():
             start_workflow(sys.argv[2])
     elif cmd == "status":
         show_status()
+    elif cmd == "steps":
+        list_steps()
     elif cmd == "next":
         next_step()
     elif cmd == "back":

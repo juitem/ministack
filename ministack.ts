@@ -36,8 +36,6 @@ function saveState(state: State) {
 
 function listItems() {
   console.log("\n--- [사용 가능한 역할(Roles)] ---");
-  const roles = existsSync(ROLES_DIR) ? Bun.file(ROLES_DIR).dir : [];
-  // Bun API alternative or standard fs
   import("fs").then((fs) => {
     fs.readdirSync(ROLES_DIR)
       .filter((f) => f.endsWith(".md"))
@@ -60,6 +58,25 @@ function startWorkflow(name: string) {
   const state: State = { workflow: name, step: 1, role: "market_researcher" };
   saveState(state);
   console.log(`'${name}' 워크플로우를 (Bun 버전으로) 시작합니다. (1단계)`);
+}
+
+async function listSteps() {
+  const state = loadState();
+  if (!state.workflow) {
+    console.log("진행 중인 워크플로우가 없습니다.");
+    return;
+  }
+  const wfPath = path.join(WORKFLOWS_DIR, `${state.workflow}.md`);
+  if (existsSync(wfPath)) {
+    const text = await Bun.file(wfPath).text();
+    console.log(`\n--- [워크플로우 '${state.workflow}'의 전체 단계] ---`);
+    text.split("\n").forEach((line) => {
+      if (line.includes("단계:")) console.log(line.trim());
+    });
+    console.log(
+      "\n'bun ministack.ts set <번호>'로 원하는 단계로 이동할 수 있습니다."
+    );
+  }
 }
 
 async function generatePrompt(userMessage?: string) {
@@ -115,7 +132,6 @@ async function generatePrompt(userMessage?: string) {
     }
   }
 
-  // 사용자 추가 메시지 주입
   if (userMessage) {
     promptContent += `\n\n[사용자 추가 지시 사항]:\n${userMessage}\n`;
   }
@@ -139,9 +155,12 @@ switch (cmd) {
     if (args[1]) startWorkflow(args[1]);
     else console.log("Usage: bun ministack.ts start <name>");
     break;
-  case "prompt":
-    const userMsg = args.slice(1).join(" ");
-    generatePrompt(userMsg || undefined);
+  case "status":
+    const ss = loadState();
+    console.log(`[Bun 상태] 워크플로우: ${ss.workflow}, 단계: ${ss.step}`);
+    break;
+  case "steps":
+    listSteps();
     break;
   case "next":
     const ns = loadState();
@@ -172,12 +191,12 @@ switch (cmd) {
       console.log("Usage: bun ministack.ts set <step_number>");
     }
     break;
-  case "status":
-    const ss = loadState();
-    console.log(`[Bun 상태] 워크플로우: ${ss.workflow}, 단계: ${ss.step}`);
+  case "prompt":
+    const userMsg = args.slice(1).join(" ");
+    generatePrompt(userMsg || undefined);
     break;
   default:
     console.log(
-      "Usage: bun ministack.ts [list|start|status|next|back|prompt]"
+      "Usage: bun ministack.ts [list|start|status|steps|next|back|set|prompt]"
     );
 }

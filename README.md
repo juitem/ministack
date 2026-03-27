@@ -42,6 +42,7 @@ bun ministack.ts prompt
 - `list`: 사용 가능한 역할과 워크플로우 목록 확인
 - `start <workflow>`: 새로운 워크플로우 시작 (단계 초기화)
 - `status`: 현재 진행 중인 단계 및 워크플로우 확인
+- `steps`: 현재 워크플로우의 모든 단계 목록과 목표 확인
 - `next`: 다음 단계로 이동
 - `back`: 이전 단계로 이동 (루프 회귀 시 사용)
 - `set <number>`: 특정 단계로 직접 이동
