@@ -148,20 +148,31 @@ def generate_prompt(user_message=None):
         return
     
     current_step = int(state.get("step", 1))
-    # 9단계로 확장된 역할 매핑
-    role_map = {
-        1: "market_researcher", # 시장 조사
-        2: "researcher",        # 맥락 수집/분석
-        3: "product",           # 기획
-        4: "concept_reviewer",  # 기획 리뷰
-        5: "architect",         # 설계
-        6: "architect",         # 설계 리뷰
-        7: "engineer",          # 구현
-        8: "reviewer",          # 코드 리뷰 (QA 포함)
-        9: "engineer"           # 출시
-    }
-    role_name = role_map.get(current_step, "engineer")
     
+    # 워크플로우별 역할 매핑
+    if workflow_name == "feature":
+        role_map = {
+            1: "market_researcher",
+            2: "researcher",
+            3: "product",
+            4: "concept_reviewer",
+            5: "architect",
+            6: "architect",
+            7: "engineer",
+            8: "reviewer",
+            9: "security_reviewer",
+            10: "engineer"
+        }
+    else:
+        role_map = {
+            1: "researcher",
+            2: "engineer",
+            3: "reviewer",
+            4: "qa",
+            5: "engineer"
+        }
+    
+    role_name = role_map.get(current_step, "engineer")
     role_path = os.path.join(ROLES_DIR, f"{role_name}.md")
     workflow_path = os.path.join(WORKFLOWS_DIR, f"{workflow_name}.md")
     
@@ -190,7 +201,6 @@ def generate_prompt(user_message=None):
                 elif in_step:
                     prompt_content += line
 
-    # 사용자 추가 메시지 주입 (리뷰 지침 등)
     if user_message:
         prompt_content += f"\n\n[사용자 추가 지시 사항]:\n{user_message}\n"
     
@@ -214,7 +224,6 @@ MiniStack CLI 사용 가이드
   back                  이전 단계로 1칸 이동합니다.
   set <number>          특정 단계 번호로 즉시 이동합니다. (예: set 5)
   prompt [message]      현재 단계에 최적화된 AI 프롬프트를 생성합니다. 
-                        뒤에 메시지를 추가하여 추가 지시를 내릴 수 있습니다.
   help                  이 도움말을 출력합니다.
 """
     print(help_text)

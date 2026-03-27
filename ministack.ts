@@ -86,17 +86,29 @@ async function generatePrompt(userMessage?: string) {
     return;
   }
 
-  const roleMap: Record<number, string> = {
-    1: "market_researcher",
-    2: "researcher",
-    3: "product",
-    4: "concept_reviewer",
-    5: "architect",
-    6: "architect",
-    7: "engineer",
-    8: "reviewer",
-    9: "engineer",
-  };
+  let roleMap: Record<number, string> = {};
+  if (state.workflow === "feature") {
+    roleMap = {
+      1: "market_researcher",
+      2: "researcher",
+      3: "product",
+      4: "concept_reviewer",
+      5: "architect",
+      6: "architect",
+      7: "engineer",
+      8: "reviewer",
+      9: "security_reviewer",
+      10: "engineer"
+    };
+  } else {
+    roleMap = {
+      1: "researcher",
+      2: "engineer",
+      3: "reviewer",
+      4: "qa",
+      5: "engineer"
+    };
+  }
 
   const roleName = roleMap[state.step] || "engineer";
   const rolePath = path.join(ROLES_DIR, `${roleName}.md`);
@@ -156,7 +168,6 @@ MiniStack CLI (Bun 버전) 사용 가이드
   back                  이전 단계로 1칸 이동합니다.
   set <number>          특정 단계 번호로 즉시 이동합니다. (예: set 5)
   prompt [message]      현재 단계에 최적화된 AI 프롬프트를 생성합니다. 
-                        뒤에 메시지를 추가하여 추가 지시를 내릴 수 있습니다.
   help                  이 도움말을 출력합니다.
 `;
   console.log(helpText);
