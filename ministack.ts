@@ -53,22 +53,24 @@ function saveState(state: State) {
 }
 
 function listItems() {
-  console.log(`\n[실행 위치]: ${PROJECT_DIR}`);
-  console.log("\n--- [사용 가능한 역할(Roles)] ---");
-
+  console.log(`\n[현지 프로젝트]: ${PROJECT_DIR}`);
+  
+  // 1. 채용된 팀원 (Local Team)
+  console.log("\n--- [채용된 팀원 (Local Team)] ---");
   const roles = new Set<string>();
-  [GLOBAL_ROLES_DIR, LOCAL_ROLES_DIR].forEach((d) => {
-    if (existsSync(d)) {
-      readdirSync(d)
-        .filter((f) => f.endsWith(".md"))
-        .forEach((f) => roles.add(f.slice(0, -3)));
-    }
-  });
-  Array.from(roles)
-    .sort()
-    .forEach((r) => console.log(`- ${r}`));
+  if (existsSync(LOCAL_ROLES_DIR)) {
+    readdirSync(LOCAL_ROLES_DIR)
+      .filter((f) => f.endsWith(".md"))
+      .forEach((f) => roles.add(f.slice(0, -3)));
+  }
+  if (roles.size > 0) {
+    Array.from(roles).sort().forEach((r) => console.log(`- ${r} (현지 상주)`));
+  } else {
+    console.log("(아직 채용된 전담 팀원이 없습니다. 전역 인력을 사용합니다.)");
+  }
 
-  console.log("\n--- [사용 가능한 워크플로우(Workflows)] ---");
+  // 2. 사용 가능한 워크플로우
+  console.log("\n--- [사용 가능한 워크플로우] ---");
   const wfs = new Set<string>();
   [GLOBAL_WORKFLOWS_DIR, LOCAL_WORKFLOWS_DIR].forEach((d) => {
     if (existsSync(d)) {
@@ -82,7 +84,71 @@ function listItems() {
     .forEach((w) => console.log(`- ${w}`));
 }
 
-function startWorkflow(name: string) {
+function listMarket() {
+  console.log("\n" + "=".repeat(50));
+  console.log("🌍 글로벌 인력 시장 (Global Talent Market)");
+  console.log("=".repeat(50));
+  if (existsSync(GLOBAL_ROLES_DIR)) {
+    const roles = readdirSync(GLOBAL_ROLES_DIR).filter((f) => f.endsWith(".md"));
+    roles.forEach((f) => {
+      const r = f.slice(0, -3);
+      const isHired = existsSync(path.join(LOCAL_ROLES_DIR, f));
+      const status = isHired ? "[채용됨]" : "[대기 중]";
+      console.log(`- ${r.padEnd(20)} ${status}`);
+    });
+  }
+  console.log("\n* 명령: 'ministack recruit <이름>'으로 전문가를 내 팀으로 영입하세요.");
+}
+
+function recruitPersona(name: string) {
+  if (!existsSync(LOCAL_ROLES_DIR)) mkdirSync(LOCAL_ROLES_DIR, { recursive: true });
+
+  const source = path.join(GLOBAL_ROLES_DIR, `${name}.md`);
+  const target = path.join(LOCAL_ROLES_DIR, `${name}.md`);
+
+  if (!existsSync(source)) {
+    console.error(`Error: 인력 시장에 '${name}'이라는 전문가가 없습니다.`);
+    return;
+  }
+
+  if (existsSync(target)) {
+    console.log(`안내: '${name}'은(는) 이미 우리 팀원입니다.`);
+    return;
+  }
+
+  const content = readFileSync(source, "utf-8");
+  writeFileSync(target, content, "utf-8");
+  console.log(`🎉 축하합니다! '${name}' 전문가가 우리 팀으로 정식 채용되었습니다.`);
+  console.log(`이제 'roles/${name}.md' 파일을 수정하여 우리 프로젝트에 맞게 특수 교육(Customizing)을 할 수 있습니다.`);
+}
+
+function onboardPersona(name: string) {
+  const source = path.join(GLOBAL_ROLES_DIR, `${name}.md`);
+  if (existsSync(source)) {
+    console.log(`안내: '${name}' 전문가가 이미 인력 시장에 등록되어 있습니다.`);
+    return;
+  }
+
+  const template = `# 역할: ${name.replace(/_/g, " ").toUpperCase()}
+
+당신은 ${name} 분야에서 풍부한 경험을 가진 전문가입니다.
+
+## 핵심 원칙
+- **전문성**: 해당 분야의 베스트 프랙티스를 준수합니다.
+- **협업**: 팀의 목표 달성을 위해 다른 전문가들과 적극적으로 소통합니다.
+
+## 도구 (Tools)
+당신은 다음 도구들을 활용할 권한이 있습니다:
+- [여기에 도구 목록을 작성하세요]
+
+## 활동
+- [여기에 주요 활동을 작성하세요]
+`;
+  writeFileSync(source, template, "utf-8");
+  console.log(`✨ 새로운 전문가 '${name}'이(가) 글로벌 인력 시장에 등록되었습니다.`);
+  console.log(`위치: ${source}`);
+  console.log("이제 이 파일을 수정하여 전문가의 상세 지침을 완성하세요.");
+}
   const workflowPath = getResourcePath("workflow", name);
   if (!existsSync(workflowPath)) {
     console.error(`Error: 워크플로우 '${name}'을 찾을 수 없습니다.`);
@@ -197,7 +263,8 @@ MiniStack CLI (전역 엔진: ${GLOBAL_DIR})
   steps                 현재 워크플로우의 전체 단계 목록을 보여줍니다.
   next                  다음 단계로 이동합니다.
   back                  이전 단계로 이동합니다.
-  set <number>          특정 단계 번호로 이동합니다.
+  onboard <name>       새로운 전문가 페르소나를 글로벌 인력 시장에 등록합니다.
+  recruit <name>        인력 시장의 전문가를 내 프로젝트 전담 팀원으로 채용합니다.
   prompt [message]      현재 단계에 최적화된 프롬프트를 생성합니다. 
   help                  이 도움말을 출력합니다.
 `;
@@ -217,6 +284,17 @@ switch (cmd) {
     break;
   case "list":
     listItems();
+    break;
+  case "market":
+    listMarket();
+    break;
+  case "onboard":
+    if (args[1]) onboardPersona(args[1]);
+    else console.log("Usage: ministack onboard <name>");
+    break;
+  case "recruit":
+    if (args[1]) recruitPersona(args[1]);
+    else console.log("Usage: ministack recruit <name>");
     break;
   case "start":
     if (args[1]) startWorkflow(args[1]);

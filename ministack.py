@@ -51,17 +51,20 @@ def save_state(state):
         json.dump(state, f, ensure_ascii=False, indent=2)
 
 def list_items():
-    print(f"\n[실행 위치]: {PROJECT_DIR}")
-    print("\n--- [사용 가능한 역할(Roles)] ---")
-    # 전역 + 로컬 역할 합치기 (중복 제거)
-    roles = set()
-    for d in [GLOBAL_ROLES_DIR, LOCAL_ROLES_DIR]:
-        if os.path.exists(d):
-            for f in os.listdir(d):
-                if f.endswith('.md'): roles.add(f[:-3])
-    for r in sorted(roles): print(f"- {r}")
+    print(f"\n[현지 프로젝트]: {PROJECT_DIR}")
     
-    print("\n--- [사용 가능한 워크플로우(Workflows)] ---")
+    # 1. 채용된 팀원 (Local Roles)
+    print("\n--- [채용된 팀원 (Local Team)] ---")
+    local_roles = []
+    if os.path.exists(LOCAL_ROLES_DIR):
+        local_roles = [f[:-3] for f in os.listdir(LOCAL_ROLES_DIR) if f.endswith('.md')]
+    if local_roles:
+        for r in sorted(local_roles): print(f"- {r} (현지 상주)")
+    else:
+        print("(아직 채용된 전담 팀원이 없습니다. 전역 인력을 사용합니다.)")
+
+    # 2. 사용 가능한 워크플로우
+    print("\n--- [사용 가능한 워크플로우] ---")
     wfs = set()
     for d in [GLOBAL_WORKFLOWS_DIR, LOCAL_WORKFLOWS_DIR]:
         if os.path.exists(d):
@@ -69,7 +72,64 @@ def list_items():
                 if f.endswith('.md'): wfs.add(f[:-3])
     for w in sorted(wfs): print(f"- {w}")
 
-def list_steps():
+def list_market():
+    print("\n" + "="*50)
+    print("🌍 글로벌 인력 시장 (Global Talent Market)")
+    print("="*50)
+    if os.path.exists(GLOBAL_ROLES_DIR):
+        roles = [f[:-3] for f in os.listdir(GLOBAL_ROLES_DIR) if f.endswith('.md')]
+        for r in sorted(roles):
+            # 로컬에 이미 있는지 체크
+            status = "[채용됨]" if os.path.exists(os.path.join(LOCAL_ROLES_DIR, f"{r}.md")) else "[대기 중]"
+            print(f"- {r:<20} {status}")
+    print("\n* 명령: 'ministack recruit <이름>'으로 전문가를 내 팀으로 영입하세요.")
+
+def recruit_persona(name):
+    if not os.path.exists(LOCAL_ROLES_DIR):
+        os.makedirs(LOCAL_ROLES_DIR)
+    
+    source = os.path.join(GLOBAL_ROLES_DIR, f"{name}.md")
+    target = os.path.join(LOCAL_ROLES_DIR, f"{name}.md")
+    
+    if not os.path.exists(source):
+        print(f"Error: 인력 시장에 '{name}'이라는 전문가가 없습니다.")
+        return
+    
+    if os.path.exists(target):
+        print(f"안내: '{name}'은(는) 이미 우리 팀원입니다. (업데이트하려면 파일을 직접 수정하세요.)")
+        return
+
+    import shutil
+    shutil.copy(source, target)
+    print(f"🎉 축하합니다! '{name}' 전문가가 우리 팀으로 정식 채용되었습니다.")
+    print(f"이제 'roles/{name}.md' 파일을 수정하여 우리 프로젝트에 맞게 특수 교육(Customizing)을 할 수 있습니다.")
+
+def onboard_persona(name):
+    source = os.path.join(GLOBAL_ROLES_DIR, f"{name}.md")
+    if os.path.exists(source):
+        print(f"안내: '{name}' 전문가가 이미 인력 시장에 등록되어 있습니다.")
+        return
+
+    template = f"""# 역할: {name.replace('_', ' ').title()}
+
+당신은 {name} 분야에서 풍부한 경험을 가진 전문가입니다.
+
+## 핵심 원칙
+- **전문성**: 해당 분야의 베스트 프랙티스를 준수합니다.
+- **협업**: 팀의 목표 달성을 위해 다른 전문가들과 적극적으로 소통합니다.
+
+## 도구 (Tools)
+당신은 다음 도구들을 활용할 권한이 있습니다:
+- [여기에 도구 목록을 작성하세요]
+
+## 활동
+- [여기에 주요 활동을 작성하세요]
+"""
+    with open(source, 'w', encoding='utf-8') as f:
+        f.write(template)
+    print(f"✨ 새로운 전문가 '{name}'이(가) 글로벌 인력 시장에 등록되었습니다.")
+    print(f"위치: {source}")
+    print("이제 이 파일을 수정하여 전문가의 상세 지침을 완성하세요.")
     state = load_state()
     workflow_name = state.get("workflow")
     if not workflow_name:
@@ -221,7 +281,10 @@ def show_help():
 MiniStack CLI (위치: {GLOBAL_DIR})
 
 명령어:
-  list                  사용 가능한 역할과 워크플로우 목록을 출력합니다. (Global/Local 합계)
+  list                  현재 프로젝트의 팀원과 워크플로우를 확인합니다.
+  market                글로벌 인력 시장의 전문가 후보들을 살펴봅기다.
+  onboard <name>       새로운 전문가 페르소나를 글로벌 인력 시장에 등록합니다.
+  recruit <name>        인력 시장의 전문가를 내 프로젝트 전담 팀원으로 채용합니다.
   start <workflow>      현재 폴더에서 새로운 프로젝트 워크플로우를 시작합니다.
   status                현재 진행 중인 단계의 상세 정보를 출력합니다.
   steps                 현재 워크플로우의 전체 단계 목록을 보여줍니다.
@@ -243,6 +306,18 @@ def main():
         show_help()
     elif cmd == "list":
         list_items()
+    elif cmd == "market":
+        list_market()
+    elif cmd == "onboard":
+        if len(sys.argv) < 3:
+            print("Usage: ministack onboard <persona_name>")
+        else:
+            onboard_persona(sys.argv[2])
+    elif cmd == "recruit":
+        if len(sys.argv) < 3:
+            print("Usage: ministack recruit <persona_name>")
+        else:
+            recruit_persona(sys.argv[2])
     elif cmd == "start":
         if len(sys.argv) < 3:
             print("Usage: ministack start <workflow_name>")
