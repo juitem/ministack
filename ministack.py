@@ -104,7 +104,7 @@ def prev_step():
     print(f"이전 단계({state['step']})로 이동했습니다.")
     show_status()
 
-def generate_prompt():
+def generate_prompt(user_message=None):
     state = load_state()
     workflow_name = state.get("workflow")
     if not workflow_name:
@@ -153,6 +153,10 @@ def generate_prompt():
                     break
                 elif in_step:
                     prompt_content += line
+
+    # 사용자 추가 메시지 주입 (리뷰 지침 등)
+    if user_message:
+        prompt_content += f"\n\n[사용자 추가 지시 사항]:\n{user_message}\n"
     
     print("\n" + "="*50)
     print(f"[{role_name.upper()} 프롬프트 생성 완료]")
@@ -181,7 +185,8 @@ def main():
     elif cmd == "back":
         prev_step()
     elif cmd == "prompt":
-        generate_prompt()
+        user_msg = " ".join(sys.argv[2:]) if len(sys.argv) > 2 else None
+        generate_prompt(user_msg)
     else:
         print(f"Unknown command: {cmd}")
 

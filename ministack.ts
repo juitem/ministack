@@ -62,7 +62,7 @@ function startWorkflow(name: string) {
   console.log(`'${name}' 워크플로우를 (Bun 버전으로) 시작합니다. (1단계)`);
 }
 
-async function generatePrompt() {
+async function generatePrompt(userMessage?: string) {
   const state = loadState();
   if (!state.workflow) {
     console.log("진행 중인 워크플로우가 없습니다.");
@@ -115,6 +115,11 @@ async function generatePrompt() {
     }
   }
 
+  // 사용자 추가 메시지 주입
+  if (userMessage) {
+    promptContent += `\n\n[사용자 추가 지시 사항]:\n${userMessage}\n`;
+  }
+
   console.log("\n" + "=".repeat(50));
   console.log(`[${roleName.toUpperCase()} 프롬프트 생성 (Bun 버전)]`);
   console.log("=".repeat(50) + "\n");
@@ -135,7 +140,8 @@ switch (cmd) {
     else console.log("Usage: bun ministack.ts start <name>");
     break;
   case "prompt":
-    generatePrompt();
+    const userMsg = args.slice(1).join(" ");
+    generatePrompt(userMsg || undefined);
     break;
   case "next":
     const ns = loadState();
