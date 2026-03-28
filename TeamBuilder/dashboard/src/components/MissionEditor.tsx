@@ -38,7 +38,7 @@ export default function MissionEditor() {
 
   return (
     <div className="mission-editor">
-      <div className="mission-label">🎯 ACTIVE MISSION</div>
+      <div className="mission-label">MISSION BRIEF</div>
       {isEditing ? (
         <div className="mission-input-group">
           <input
@@ -49,19 +49,19 @@ export default function MissionEditor() {
             onKeyDown={handleKeyDown}
             autoFocus
           />
-          <button className="icon-btn-success" onClick={handleSave}><Check size={18} /></button>
+          <button className="confirm-btn-minimal" onClick={handleSave}><Check size={18} /></button>
         </div>
       ) : (
         <div className="mission-display">
           <h1 className="mission-text">{mission}</h1>
           <div className="mission-actions">
-            <button className="mission-action-btn" onClick={generateRecommendation} title="AI Recommend Workflow">
-              <Wand2 size={16} />
-              <span>Optimize</span>
+            <button className="minimal-action-btn" onClick={generateRecommendation} title="AI Recommend Workflow">
+              <Wand2 size={14} />
+              <span>OPTIMIZE</span>
             </button>
-            <button className="mission-action-btn" onClick={() => setIsEditing(true)}>
-              <Edit2 size={16} />
-              <span>Refine</span>
+            <button className="minimal-action-btn" onClick={() => setIsEditing(true)}>
+              <Edit2 size={14} />
+              <span>REFINE</span>
             </button>
           </div>
         </div>

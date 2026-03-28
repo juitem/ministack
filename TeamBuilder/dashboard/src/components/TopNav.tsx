@@ -7,33 +7,33 @@ export default function TopNav() {
   const missionText = useStore(state => state.mission);
 
   return (
-    <nav className="top-nav glass-panel">
+    <nav className="top-nav-minimal">
       <div className="nav-left">
         <div className="nav-item-indicator">
-          <Zap size={16} className="icon-primary pulse" />
+          <Zap size={14} className="icon-main" />
           <span className="current-mission-label">MISSION: {missionText}</span>
         </div>
       </div>
 
-      <div className="nav-center">
+      <div className="nav-center-minimal">
         <button 
-          className={`nav-tab ${currentView === 'mission' ? 'active' : ''}`}
+          className={`nav-tab-minimal ${currentView === 'mission' ? 'active' : ''}`}
           onClick={() => setView('mission')}
         >
-          <LayoutDashboard size={18} />
-          <span>Mission Control</span>
+          <LayoutDashboard size={16} />
+          <span>MISSION CONTROL</span>
         </button>
         <button 
-          className={`nav-tab ${currentView === 'personnel' ? 'active' : ''}`}
+          className={`nav-tab-minimal ${currentView === 'personnel' ? 'active' : ''}`}
           onClick={() => setView('personnel')}
         >
-          <Users size={18} />
-          <span>Personnel Agency</span>
+          <Users size={16} />
+          <span>PERSONNEL AGENCY</span>
         </button>
       </div>
 
       <div className="nav-right">
-        <div className="system-status-badge">
+        <div className="system-status-minimal">
           <span className="status-dot ready"></span>
           <span>SYSTEM ONLINE</span>
         </div>

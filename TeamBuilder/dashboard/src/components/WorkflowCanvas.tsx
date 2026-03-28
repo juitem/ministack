@@ -47,42 +47,44 @@ export default function WorkflowCanvas() {
               <div className="node-number">{String(stepNumber).padStart(2, '0')}</div>
               
               <div className="node-content">
-                <div className="node-header">
-                  <h4>{job.title}</h4>
+                <div className="ownership-header">
+                  <div className="owner-info">
+                    <span className="owner-label">OWNER</span>
+                    <select 
+                      className="owner-select"
+                      value={job.targetRoleId || ''}
+                      onChange={(e) => assignRoleToJob(job.id, e.target.value)}
+                    >
+                      <option value="">Select an expert...</option>
+                      {localStaff.map(staff => (
+                        <option key={staff.id} value={staff.id}>
+                          {staff.icon} {staff.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                   <button 
-                    className="delete-btn"
+                    className="delete-btn-minimal"
                     onClick={() => deleteJob(job.id)}
                     title="Remove objective"
                   >
-                    <Trash2 size={16} />
+                    <Trash2 size={14} />
                   </button>
                 </div>
-                <p className="node-desc">{job.description}</p>
-                
-                <div className="node-assignment">
-                  <span className="label">ASSIGNEE</span>
-                  <select 
-                    className="assign-select"
-                    value={job.targetRoleId || ''}
-                    onChange={(e) => assignRoleToJob(job.id, e.target.value)}
-                  >
-                    <option value="">Select an expert...</option>
-                    {localStaff.map(staff => (
-                      <option key={staff.id} value={staff.id}>
-                        {staff.icon} {staff.name}
-                      </option>
-                    ))}
-                  </select>
+
+                <div className="job-details">
+                  <h4 className="job-title">{job.title}</h4>
+                  <p className="job-desc">{job.description}</p>
                 </div>
               </div>
 
-              <div className="node-status-icon">
+              <div className="node-status-minimal">
                 {computedStatus === 'Completed' ? (
-                  <CheckCircle2 size={24} className="icon-success" />
+                  <CheckCircle2 size={20} className="icon-success" />
                 ) : computedStatus === 'Running' ? (
-                  <Loader2 size={24} className="animate-spin icon-primary" />
+                  <Loader2 size={20} className="animate-spin icon-primary" />
                 ) : (
-                  <Circle size={24} className="icon-dim" />
+                  <Circle size={20} className="icon-dim" />
                 )}
                 <span className="status-text">{computedStatus}</span>
               </div>

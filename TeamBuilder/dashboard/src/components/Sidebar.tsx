@@ -13,10 +13,10 @@ export default function Sidebar() {
   return (
     <aside className="sidebar">
       <div className="sidebar-header">
-        <h2 className="gradient-text">TEAMBUILDER</h2>
-        <div className="system-status">
-          <span className="badge-px">OPERATIONAL</span>
-          <span className="version-tag">v0.4-ZEN</span>
+        <h2 className="minimal-logo">TEAMBUILDER</h2>
+        <div className="system-status-minimal">
+          <span className="system-tag">OPERATIONAL</span>
+          <span className="version-status">v0.4-MONO</span>
         </div>
       </div>
       
@@ -28,7 +28,7 @@ export default function Sidebar() {
             return (
               <div 
                 key={staff.id} 
-                className={`role-card ${staff.status === 'Working' ? 'active' : ''}`}
+                className={`role-card-minimal ${staff.status === 'Working' ? 'active' : ''}`}
                 onClick={() => setSelectedId(staff.id)}
               >
                 <div className="role-main">
@@ -36,14 +36,14 @@ export default function Sidebar() {
                   <div className="info">
                     <p className="name">{staff.name}</p>
                     <div className="meta-info">
-                      <span className="level-tag">{staff.roleLevel || 'Staff'}</span>
+                      <span className="level-tag-minimal">{staff.roleLevel || 'Staff'}</span>
                       <span className={`status-dot ${staff.status.toLowerCase()}`}></span>
                       <span className="status-text">{staff.status}</span>
                     </div>
                   </div>
                 </div>
                 {workload > 0 && (
-                  <div className="workload-badge">
+                  <div className="workload-count">
                     {workload}
                   </div>
                 )}
@@ -53,7 +53,7 @@ export default function Sidebar() {
         </div>
       </section>
 
-      <button className="recruit-btn glow-shadow" onClick={() => setMarketOpen(true)}>
+      <button className="primary-btn-minimal" onClick={() => setMarketOpen(true)}>
         <Plus size={16} /> Recruit Expert
       </button>
     </aside>
