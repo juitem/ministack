@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, readFileSync, writeFileSync, readdirSync } from "fs";
+import fs, { existsSync, mkdirSync, readFileSync, writeFileSync, readdirSync, type Dirent } from "fs";
 import path from "path";
 
 // [중요] 경로 설계 개편 (Global Tooling 대응)
@@ -14,7 +14,8 @@ const GLOBAL_WORKFLOWS_DIR = path.join(GLOBAL_DIR, "workflows");
 const LOCAL_ROLES_DIR = path.join(PROJECT_DIR, "roles");
 const LOCAL_WORKFLOWS_DIR = path.join(PROJECT_DIR, "workflows");
 const DOCS_DIR = path.join(PROJECT_DIR, "docs");
-const STATE_FILE = path.join(PROJECT_DIR, "state.json");
+const STATE_FILE = path.join(PROJECT_DIR, "state_execution.json");
+const PROJECT_FILE = path.join(PROJECT_DIR, "state_project.json");
 
 // 디렉토리 초기화 (프로젝트별 산출물 폴더)
 if (!existsSync(DOCS_DIR)) mkdirSync(DOCS_DIR, { recursive: true });
@@ -23,7 +24,13 @@ interface State {
   workflow: string;
   step: number;
   role: string;
+}
+
+interface ProjectState {
+  mission?: string;
   assignments?: Record<string, string>;
+  jobs?: any[];
+  localStaff?: any[];
 }
 
 function getResourcePath(type: "role" | "workflow", name: string): string {
@@ -36,6 +43,21 @@ function getResourcePath(type: "role" | "workflow", name: string): string {
     `${name}.md`
   );
   return existsSync(localPath) ? localPath : globalPath;
+}
+
+function loadProject(): ProjectState {
+  if (existsSync(PROJECT_FILE)) {
+    try {
+      return JSON.parse(readFileSync(PROJECT_FILE, "utf-8"));
+    } catch (e) {
+      /* ignore */
+    }
+  }
+  return {};
+}
+
+function saveProject(project: ProjectState) {
+  writeFileSync(PROJECT_FILE, JSON.stringify(project, null, 2), "utf-8");
 }
 
 function loadState(): State {
@@ -61,7 +83,7 @@ function listItems() {
   const localRoles: string[] = [];
   if (existsSync(LOCAL_ROLES_DIR)) {
     const walk = (dir: string) => {
-      readdirSync(dir, { withFileTypes: true }).forEach((dirent) => {
+      readdirSync(dir, { withFileTypes: true }).forEach((dirent: Dirent) => {
         const res = path.resolve(dir, dirent.name);
         if (dirent.isDirectory()) {
           walk(res);
@@ -102,11 +124,11 @@ function listMarket() {
     const walk = (dir: string) => {
       const category = path.relative(GLOBAL_ROLES_DIR, dir) || "General";
       const files = readdirSync(dir, { withFileTypes: true });
-      const mdFiles = files.filter((f) => !f.isDirectory() && f.name.endsWith(".md"));
+      const mdFiles = files.filter((f: Dirent) => !f.isDirectory() && f.name.endsWith(".md"));
       
       if (mdFiles.length > 0) {
         console.log(`\n[${category.toUpperCase()}]`);
-        mdFiles.forEach((dirent) => {
+        mdFiles.forEach((dirent: Dirent) => {
           const relPath = path.relative(GLOBAL_ROLES_DIR, path.join(dir, dirent.name));
           const r = relPath.slice(0, -3);
           const isHired = existsSync(path.join(LOCAL_ROLES_DIR, relPath));
@@ -115,7 +137,7 @@ function listMarket() {
         });
       }
       
-      files.filter((f) => f.isDirectory()).forEach((d) => walk(path.join(dir, d.name)));
+      files.filter((f: Dirent) => f.isDirectory()).forEach((d: Dirent) => walk(path.join(dir, d.name)));
     };
     walk(GLOBAL_ROLES_DIR);
   }
@@ -209,27 +231,23 @@ function trainPersona(name: string, knowledge: string) {
 }
 
 function assignPersona(stepNum: string, roleName: string) {
-  const state = loadState();
-  if (!state.workflow) {
-    console.error("진행 중인 워크플로우가 없습니다.");
-    return;
-  }
-  if (!state.assignments) state.assignments = {};
-  state.assignments[stepNum] = roleName;
-  saveState(state);
-  console.log(`📌 ${stepNum}단계의 담당자로 '${roleName}' 전문가를 배치했습니다.`);
+  const project = loadProject();
+  if (!project.assignments) project.assignments = {};
+  project.assignments[stepNum] = roleName;
+  saveProject(project);
+  console.log(`📌 ${stepNum}단계의 담당자로 '${roleName}' 전문가를 배치했습니다. (project.json 저장)`);
 }
 
 function startWorkflow(name: string) {
   const workflowPath = getResourcePath("workflow", name);
   if (!existsSync(workflowPath)) {
-    console.error(`Error: 워크플로우 '${name}'을 찾을 수 없습니다.`);
+    console.error(`\x1b[31m❌ Error: 워크플로우 '${name}'을(를) 찾을 수 없습니다.\x1b[0m`);
     return;
   }
 
   const state: State = { workflow: name, step: 1, role: "market_researcher" };
   saveState(state);
-  console.log(`새 프로젝트에서 '${name}' 워크플로우를 시작합니다. (1단계)`);
+  console.log(`\x1b[36m🚀 새 프로젝트에서 '${name}' 워크플로우를 시작합니다. (현재 1단계)\x1b[0m`);
 }
 
 async function listSteps() {
@@ -256,8 +274,9 @@ async function generatePrompt(userMessage?: string) {
   }
 
   let roleName = "engineer";
-  if (state.assignments && state.assignments[state.step.toString()]) {
-    roleName = state.assignments[state.step.toString()];
+  const project = loadProject();
+  if (project.assignments && project.assignments[state.step.toString()]) {
+    roleName = project.assignments[state.step.toString()];
   } else {
     let roleMap: Record<number, string> = {};
     if (state.workflow === "feature") {
@@ -398,16 +417,22 @@ switch (cmd) {
     break;
   case "next":
     const ns = loadState();
+    if (!ns.workflow) {
+      console.log("\x1b[33m⚠️  진행 중인 워크플로우가 없습니다. 먼저 start 하세요.\x1b[0m");
+      break;
+    }
     ns.step++;
     saveState(ns);
-    console.log(`다음 단계(${ns.step})로 이동했습니다.`);
+    console.log(`\x1b[32m⏭️  다음 단계(${ns.step})로 이동했습니다.\x1b[0m`);
     break;
   case "back":
     const ps = loadState();
     if (ps.step > 1) {
       ps.step--;
       saveState(ps);
-      console.log(`이전 단계(${ps.step})로 이동했습니다.`);
+      console.log(`\x1b[33m⏮️  이전 단계(${ps.step})로 돌아갔습니다.\x1b[0m`);
+    } else {
+      console.log("\x1b[31m❌ 이미 첫 번째 단계입니다.\x1b[0m");
     }
     break;
   case "set":

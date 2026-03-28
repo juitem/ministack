@@ -8,16 +8,24 @@
 ### 2.1. 인력 시장 (Talent Market)
 - **Global Pool**: `ministack` 설치 경로에 위치한 전역 전문가 라이브러리.
 - **Hierarchical Roles**: `category/specialty.md` 구조로 체계화된 전문가 군단 (예: `engineer/kernel`, `reviewer/security`).
+### 2.1. 미션 중심 오케스트레이션 (Mission-Driven Orchestration)
+- 사용자가 "무엇을 만들 것인가(Product Goal)"를 입력하면, 시스템이 그 목적에 맞는 최적의 팀(Roles)과 워크플로우(Jobs)를 제안합니다.
+- **Mission Brief**: 프로젝트의 최종 목적을 담은 문서(`docs/mission.md`)가 모든 팀원에게 상시 공유되는 '북극성' 역할을 수행합니다.
+- **Job (What)**: 워크플로우의 특정 단계에서 수행해야 할 구체적인 미션과 산출물 정의 (Transient Assignment).
+- **Assignment**: 특정 Job에 가장 적합한 Role을 동적으로 매핑하는 메커니즘.
 
 ### 2.2. 프로젝트 팀 (Project Team - Staff)
 - **Local Pool**: 현재 진행 중인 프로젝트 폴더(`${CWD}/roles/`)에 소속된 상주 인력.
 - **Recruited Staff**: 글로벌 시장에서 영입된 전문가.
 - **Cloned & Evolved**: 기존 인력을 복제(`clone`)하거나 교육(`train`)하여 만들어낸 파생형 전문가.
 
-### 2.3. 역할(Role) vs 과업(Job)
+### 2.3. 인력 시장 (Talent Market)
+- **Global Pool**: `ministack` 설치 경로에 위치한 전역 전문가 라이브러리.
+- **Hierarchical Roles**: `category/specialty.md` 구조로 체계화된 전문가 군단 (예: `engineer/kernel`, `reviewer/security`).
+
+### 2.4. 역할(Role)
 - **Role (Who)**: 전문가의 정체성, 도구, 기본 지침 (Persistent Identity).
-- **Job (What)**: 워크플로우의 특정 단계에서 수행해야 할 구체적인 미션과 산출물 정의 (Transient Assignment).
-- **Assignment**: 특정 Job에 가장 적합한 Role을 동적으로 매핑하는 메커니즘.
+
 
 ## 3. 핵심 기능 요구사항 (Functional Requirements)
 
@@ -26,13 +34,21 @@
 - **`onboard <name>`**: 새로운 분야의 전문가 페르소나를 글로벌 시장에 정식 등록.
 - **`recruit <name>`**: 글로벌 전문가를 내 프로젝트의 전담 팀원으로 영입.
 
-### 3.2. 페르소나 진화 (Evolution)
-- **`clone <src> <dest>`**: 특정 전문가의 능력을 그대로 복제하여 새로운 파생 전문가 생성.
-- **`train <name> <knowledge>`**: 프로젝트를 통해 얻은 경험이나 추가 지식을 전문가의 페르소나 파일에 주입.
+### 3.9. 작업 이력 및 감사 (Audit Log & Timeline)
+- **Activity Log**: 각 전문가가 수행한 작업 내용, 생성한 프롬프트, 그리고 받은 피드백을 타임라인 형태로 기록.
+- **Snapshot Revision**: 특정 시점의 프로젝트 상태로 되돌릴 수 있는 스냅샷 기능 제공.
+
+### 3.11. 미션 지향형 온보딩 (Project Setup UI)
+- **Mission Input**: 대시보드 진입 시 최상단에 "이 팀의 목표(Target Product)"를 입력하는 공간 배치.
+- **Auto-Matching**: 입력된 목표를 분석하여 필요한 전문가 역할(Role)을 자동으로 활성화하거나 추천.
 
 ### 3.5. 팀 템플릿 (Team Templates)
 - **Export/Import**: 현재 구성된 전문가 팀(Roles)과 워크플로우를 하나의 '팀 패키지'로 저장하고 공유합니다.
 - **Pre-set Teams**: "표준 커널 개발팀", "풀스택 웹 팀" 등 검증된 조합을 즉시 불러와 프로젝트를 시작합니다.
+
+### 3.2. 페르소나 진화 (Evolution)
+- **`clone <src> <dest>`**: 특정 전문가의 능력을 그대로 복제하여 새로운 파생 전문가 생성.
+- **`train <name> <knowledge>`**: 프로젝트를 통해 얻은 경험이나 추가 지식을 전문가의 페르소나 파일에 주입.
 
 ### 3.6. 에이전트 간 지식 공유 (Context Binding)
 - **Artifact Link**: 이전 단계의 산출물을 다음 단계 전문가에게 자동으로 전달하는 지형적 문맥 공유 채널 구축.

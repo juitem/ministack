@@ -17,7 +17,8 @@ GLOBAL_WORKFLOWS_DIR = os.path.join(GLOBAL_DIR, 'workflows')
 LOCAL_ROLES_DIR = os.path.join(PROJECT_DIR, 'roles')
 LOCAL_WORKFLOWS_DIR = os.path.join(PROJECT_DIR, 'workflows')
 DOCS_DIR = os.path.join(PROJECT_DIR, 'docs')
-STATE_FILE = os.path.join(PROJECT_DIR, 'state.json')
+STATE_FILE = os.path.join(PROJECT_DIR, 'state_execution.json')
+PROJECT_FILE = os.path.join(PROJECT_DIR, 'state_project.json')
 
 # 필요한 디렉토리 초기화 (프로젝트별로 docs 생성)
 if not os.path.exists(DOCS_DIR):
@@ -32,7 +33,20 @@ def get_resource_path(resource_type, name):
         return local_path
     return global_path
 
-def load_state():
+def load_project() -> dict:
+    if os.path.exists(PROJECT_FILE):
+        try:
+            with open(PROJECT_FILE, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        except Exception:
+            pass
+    return {}
+
+def save_project(project):
+    with open(PROJECT_FILE, 'w', encoding='utf-8') as f:
+        json.dump(project, f, ensure_ascii=False, indent=2)
+
+def load_state() -> dict:
     if os.path.exists(STATE_FILE):
         try:
             with open(STATE_FILE, 'r', encoding='utf-8') as f:
@@ -174,18 +188,15 @@ def train_persona(name, knowledge):
     print(f"📖 '{name}' 전문가에게 새로운 지식을 전수했습니다. 이제 더 똑똑해졌습니다!")
 
 def assign_persona(step_num, role_name):
-    state = load_state()
-    if not state.get("workflow"):
-        print("진행 중인 워크플로우가 없습니다.")
-        return
+    project = load_project()
     
     # assignments가 state에 없으면 초기화
-    if "assignments" not in state:
-        state["assignments"] = {}
+    if "assignments" not in project:
+        project["assignments"] = {}
     
-    state["assignments"][str(step_num)] = role_name
-    save_state(state)
-    print(f"📌 {step_num}단계의 담당자로 '{role_name}' 전문가를 배치했습니다.")
+    project["assignments"][str(step_num)] = role_name
+    save_project(project)
+    print(f"📌 {step_num}단계의 담당자로 '{role_name}' 전문가를 배치했습니다. (project.json 저장)")
 
 def list_steps():
     state = load_state()
@@ -208,12 +219,12 @@ def list_steps():
 def start_workflow(name):
     path = get_resource_path('workflow', name)
     if not os.path.exists(path):
-        print(f"Error: 워크플로우 '{name}'을 찾을 수 없습니다.")
+        print(f"\033[31m❌ Error: 워크플로우 '{name}'을(를) 찾을 수 없습니다.\033[0m")
         return
     
     state = {"workflow": str(name), "step": 1, "role": "market_researcher"}
     save_state(state)
-    print(f"새 프로젝트에서 '{name}' 워크플로우를 시작합니다. (1단계)")
+    print(f"\033[36m🚀 새 프로젝트에서 '{name}' 워크플로우를 시작합니다. (현재 1단계)\033[0m")
     show_status()
 
 def show_status():
@@ -247,11 +258,11 @@ def show_status():
 def next_step():
     state = load_state()
     if not state.get("workflow"):
-        print("진행 중인 워크플로우가 없습니다.")
+        print("\033[33m⚠️  진행 중인 워크플로우가 없습니다. 먼저 start 하세요.\033[0m")
         return
     state["step"] = int(state.get("step", 0)) + 1
     save_state(state)
-    print(f"다음 단계({state['step']})로 이동했습니다.")
+    print(f"\033[32m⏭️  다음 단계({state['step']})로 이동했습니다.\033[0m")
     show_status()
 
 def set_step(step_num):
@@ -274,12 +285,15 @@ def set_step(step_num):
 def prev_step():
     state = load_state()
     current_step = int(state.get("step", 0))
-    if not state.get("workflow") or current_step <= 1:
-        print("이전 단계가 없습니다.")
+    if not state.get("workflow"):
+        print("\033[33m⚠️  진행 중인 워크플로우가 없습니다.\033[0m")
+        return
+    if current_step <= 1:
+        print("\033[31m❌ 이미 첫 번째 단계입니다.\033[0m")
         return
     state["step"] = current_step - 1
     save_state(state)
-    print(f"이전 단계({state['step']})로 이동했습니다.")
+    print(f"\033[33m⏮️  이전 단계({state['step']})로 돌아갔습니다.\033[0m")
     show_status()
 
 def generate_prompt(user_message=None):
@@ -292,7 +306,8 @@ def generate_prompt(user_message=None):
     current_step = int(state.get("step", 1))
     
     # 1. 수동 할당 확인
-    assignments = state.get("assignments", {})
+    project = load_project()
+    assignments = project.get("assignments", {})
     if str(current_step) in assignments:
         role_name = assignments[str(current_step)]
     else:

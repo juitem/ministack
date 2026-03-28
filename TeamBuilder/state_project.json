@@ -1,0 +1,76 @@
+{
+  "mission": "TeamBuilder AI Orchestrator 개발",
+  "localStaff": [
+    {
+      "id": "1",
+      "name": "engineer/kernel_v2",
+      "specialty": "kernel",
+      "status": "Ready",
+      "icon": "🔧",
+      "roleLevel": "Contributor",
+      "clusterId": null
+    },
+    {
+      "id": "2",
+      "name": "researcher/market",
+      "specialty": "market",
+      "status": "Idle",
+      "icon": "📊",
+      "roleLevel": "Contributor",
+      "clusterId": null
+    }
+  ],
+  "jobs": [
+    {
+      "id": "j1",
+      "title": "Requirement Analysis",
+      "description": "Analyze product requirements and define core features.",
+      "sourceRoleId": null,
+      "targetClusterId": null,
+      "targetRoleId": "1",
+      "status": "Pending",
+      "stepOrder": 0
+    },
+    {
+      "id": "j2",
+      "title": "Architecture Design",
+      "description": "Design system architecture and data flow.",
+      "sourceRoleId": null,
+      "targetClusterId": null,
+      "targetRoleId": null,
+      "status": "Pending",
+      "stepOrder": 1
+    },
+    {
+      "id": "j3",
+      "title": "Core Implementation",
+      "description": "Implement the core logic and kernel features.",
+      "sourceRoleId": null,
+      "targetClusterId": null,
+      "targetRoleId": "qa",
+      "status": "Pending",
+      "stepOrder": 2
+    },
+    {
+      "id": "j4",
+      "title": "Security Audit",
+      "description": "Review code for security vulnerabilities.",
+      "sourceRoleId": null,
+      "targetClusterId": null,
+      "targetRoleId": null,
+      "status": "Pending",
+      "stepOrder": 3
+    },
+    {
+      "id": "j5",
+      "title": "Final Testing",
+      "description": "Perform end-to-end testing and QA.",
+      "sourceRoleId": null,
+      "targetClusterId": null,
+      "targetRoleId": null,
+      "status": "Pending",
+      "stepOrder": 4
+    }
+  ],
+  "clusters": []
+}
