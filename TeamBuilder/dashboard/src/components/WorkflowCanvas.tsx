@@ -29,10 +29,10 @@ export default function WorkflowCanvas() {
   };
 
   return (
-    <div className="workflow-canvas mt-8">
+    <div className="workflow-canvas">
       <div className="canvas-header">
-        <h3>Workflow Canvas: {workflowName}</h3>
-        <span className="job-count">{jobs.length} Steps Total</span>
+        <h3 className="section-label">OBJECTIVE PIPELINE</h3>
+        <span className="job-count-badge">{jobs.length} STAGES</span>
       </div>
 
       <div className="jobs-list">
@@ -44,7 +44,7 @@ export default function WorkflowCanvas() {
 
           return (
             <div key={job.id} className={`job-node ${computedStatus.toLowerCase()} ${computedStatus === 'Running' ? 'active-step' : ''}`}>
-              <div className="node-number">{stepNumber}</div>
+              <div className="node-number">{String(stepNumber).padStart(2, '0')}</div>
               
               <div className="node-content">
                 <div className="node-header">
@@ -52,8 +52,7 @@ export default function WorkflowCanvas() {
                   <button 
                     className="delete-btn"
                     onClick={() => deleteJob(job.id)}
-                    title="Delete step"
-                    style={{ background: 'transparent', border: 'none', color: 'var(--text-dim)', cursor: 'pointer' }}
+                    title="Remove objective"
                   >
                     <Trash2 size={16} />
                   </button>
@@ -61,7 +60,7 @@ export default function WorkflowCanvas() {
                 <p className="node-desc">{job.description}</p>
                 
                 <div className="node-assignment">
-                  <div className="assignment-label">Assignee</div>
+                  <span className="label">ASSIGNEE</span>
                   <select 
                     className="assign-select"
                     value={job.targetRoleId || ''}
@@ -77,13 +76,13 @@ export default function WorkflowCanvas() {
                 </div>
               </div>
 
-              <div className="node-status">
+              <div className="node-status-icon">
                 {computedStatus === 'Completed' ? (
-                  <CheckCircle2 size={24} color="var(--success)" />
+                  <CheckCircle2 size={24} className="icon-success" />
                 ) : computedStatus === 'Running' ? (
-                  <Loader2 size={24} className="animate-spin" color="var(--primary)" />
+                  <Loader2 size={24} className="animate-spin icon-primary" />
                 ) : (
-                  <Circle size={24} color="var(--border)" />
+                  <Circle size={24} className="icon-dim" />
                 )}
                 <span className="status-text">{computedStatus}</span>
               </div>
@@ -92,43 +91,43 @@ export default function WorkflowCanvas() {
         })}
       </div>
 
-      <div className="canvas-footer mt-8 flex gap-4">
+      <div className="canvas-footer">
         {!isAdding ? (
-          <>
-            <button className="secondary-btn flex-1" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }} onClick={() => setIsAdding(true)}>
+          <div className="footer-actions">
+            <button className="secondary-btn" onClick={() => setIsAdding(true)}>
               <Plus size={20} />
-              <span>Add New Step</span>
+              <span>Extend Pipeline</span>
             </button>
-            <button className="secondary-btn flex-1" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }} onClick={() => {
+            <button className="secondary-btn" onClick={() => {
               const name = prompt("Enter template name:", workflowName);
               if (name) saveAsTemplate(name);
             }}>
               <Save size={20} />
-              <span>Save as Template</span>
+              <span>Export Template</span>
             </button>
-          </>
+          </div>
         ) : (
-          <div className="add-step-form glass-panel mt-4 w-full">
-            <h4 style={{ marginBottom: '16px', fontSize: '1rem' }}>Forge New Objective</h4>
-            <input 
-              type="text" 
-              placeholder="Objective Title..." 
-              value={newTitle}
-              onChange={(e) => setNewTitle(e.target.value)}
-              className="form-input"
-              style={{ width: '100%', padding: '12px', background: 'var(--bg-deep)', border: '1px solid var(--border)', borderRadius: '8px', color: '#fff' }}
-              autoFocus
-            />
-            <textarea 
-              placeholder="Detailed description of the mission step..." 
-              value={newDesc}
-              onChange={(e) => setNewDesc(e.target.value)}
-              className="form-input mt-2"
-              style={{ width: '100%', padding: '12px', background: 'var(--bg-deep)', border: '1px solid var(--border)', borderRadius: '8px', color: '#fff', minHeight: '80px' }}
-            />
-            <div className="form-actions mt-4" style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
-              <button className="secondary-btn" onClick={() => setIsAdding(false)}>Cancel</button>
-              <button className="primary-btn" onClick={handleAdd}>Confirm Step</button>
+          <div className="add-step-form glass-panel">
+            <h4 className="form-title">FORGE NEW OBJECTIVE</h4>
+            <div className="form-group">
+              <input 
+                type="text" 
+                placeholder="Objective Title..." 
+                value={newTitle}
+                onChange={(e) => setNewTitle(e.target.value)}
+                className="form-input"
+                autoFocus
+              />
+              <textarea 
+                placeholder="Define the mission success criteria..." 
+                value={newDesc}
+                onChange={(e) => setNewDesc(e.target.value)}
+                className="form-input textarea"
+              />
+            </div>
+            <div className="form-actions">
+              <button className="secondary-btn small" onClick={() => setIsAdding(false)}>Cancel</button>
+              <button className="primary-btn small" onClick={handleAdd}>Commence Step</button>
             </div>
           </div>
         )}

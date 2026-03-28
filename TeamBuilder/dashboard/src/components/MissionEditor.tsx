@@ -49,19 +49,19 @@ export default function MissionEditor() {
             onKeyDown={handleKeyDown}
             autoFocus
           />
-          <button className="icon-btn success" onClick={handleSave}><Check size={18} /></button>
+          <button className="icon-btn-success" onClick={handleSave}><Check size={18} /></button>
         </div>
       ) : (
         <div className="mission-display">
           <h1 className="mission-text">{mission}</h1>
           <div className="mission-actions">
-            <button className="icon-btn" onClick={generateRecommendation} title="AI Recommend Workflow">
+            <button className="mission-action-btn" onClick={generateRecommendation} title="AI Recommend Workflow">
               <Wand2 size={16} />
-              <span style={{marginLeft: 4, fontSize: '0.8rem'}}>Optimize</span>
+              <span>Optimize</span>
             </button>
-            <button className="icon-btn" onClick={() => setIsEditing(true)}>
+            <button className="mission-action-btn" onClick={() => setIsEditing(true)}>
               <Edit2 size={16} />
-              <span style={{marginLeft: 4, fontSize: '0.8rem'}}>Refine</span>
+              <span>Refine</span>
             </button>
           </div>
         </div>

@@ -55,6 +55,50 @@
   transform: translateY(-4px);
 }
 
+.sidebar-header {
+  margin-bottom: 40px;
+}
+
+.sidebar-header h2 {
+  font-size: 1.4rem;
+  font-weight: 900;
+  margin: 0;
+}
+
+.system-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.badge-px {
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 2px 6px;
+  background: var(--primary-glow);
+  color: var(--primary);
+  border: 1px solid var(--primary-glow);
+  border-radius: 4px;
+  letter-spacing: 0.05em;
+}
+
+.version-tag {
+  font-size: 0.65rem;
+  color: var(--text-dim);
+  font-weight: 600;
+  font-family: var(--mono);
+}
+
+.section-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--text-dim);
+  letter-spacing: 0.12em;
+  margin-bottom: 20px;
+  text-transform: uppercase;
+}
+
 /* Typography Overrides */
 h1, h2, h3 {
   font-family: var(--font-heading);
@@ -105,54 +149,453 @@ h1, h2, h3 {
 
 .role-card .name {
   font-weight: 600;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
+  color: #fff;
+  margin-bottom: 2px;
+}
+
+.meta-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.level-tag {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--text-dim);
+}
+
+.status-dot.ready { background: var(--success); box-shadow: 0 0 8px var(--success); }
+.status-dot.working { background: var(--primary); box-shadow: 0 0 8px var(--primary); }
+.status-dot.idle { background: var(--warning); }
+
+.status-text {
+  font-size: 0.65rem;
+  font-weight: 500;
+  color: var(--text-dim);
+}
+
+.workload-badge {
+  background: var(--primary);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 800;
+  min-width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  padding: 0 6px;
+  box-shadow: 0 0 12px var(--primary-glow);
 }
 
 /* Mission UI */
 .mission-editor {
   text-align: center;
-  background: transparent;
-  border: none;
-  box-shadow: none;
-  padding: 0;
+  margin-bottom: 24px;
 }
 
 .mission-label {
   font-family: var(--font-heading);
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 800;
   text-transform: uppercase;
   color: var(--primary);
-  letter-spacing: 0.1em;
-  margin-bottom: 12px;
+  letter-spacing: 0.15em;
+  margin-bottom: 20px;
+  opacity: 0.8;
+}
+
+.mission-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
 }
 
 .mission-text {
-  font-size: 2.8rem;
-  line-height: 1.1;
-  font-weight: 700;
+  font-size: 3.2rem;
+  line-height: 1.05;
+  font-weight: 800;
   color: #fff;
-  text-shadow: 0 0 40px rgba(255, 255, 255, 0.1);
+  max-width: 800px;
+  text-shadow: 0 0 60px rgba(99, 102, 241, 0.2);
+  letter-spacing: -0.03em;
 }
 
-/* Workflow Canvas Nodes */
-.job-node {
-  background: rgba(255, 255, 255, 0.02);
+.mission-actions {
+  display: flex;
+  gap: 12px;
+  animation: fadeIn 1s 0.5s both;
+}
+
+.mission-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.03);
   border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 24px;
-  margin-bottom: 24px;
-  transition: all 0.3s ease;
+  border-radius: 100px;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.mission-action-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--text-muted);
+  color: #fff;
+  transform: translateY(-2px);
+}
+
+.mission-input-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.mission-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid var(--primary);
+  font-size: 2.8rem;
+  font-weight: 800;
+  color: #fff;
+  padding: 8px 0;
+  outline: none;
+  text-align: center;
+}
+
+.icon-btn-success {
+  background: var(--success);
+  color: #fff;
+  border: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.3);
+}
+
+/* Workflow Canvas Layout */
+.workflow-canvas {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.canvas-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.job-count-badge {
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--text-dim);
+  background: rgba(255, 255, 255, 0.03);
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+}
+
+.jobs-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.job-node {
+  display: flex;
+  align-items: flex-start;
+  gap: 24px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 32px;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.job-node::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: transparent;
+  transition: all 0.3s;
 }
 
 .job-node:hover {
-  background: rgba(255, 255, 255, 0.04);
-  border-color: var(--border-active);
+  border-color: rgba(255, 255, 255, 0.1);
+  transform: translateX(8px);
+  background: rgba(255, 255, 255, 0.02);
 }
 
 .job-node.active-step {
+  border-color: var(--primary-glow);
+  box-shadow: var(--shadow-glow);
+}
+
+.job-node.active-step::before {
+  background: var(--primary);
+}
+
+.node-number {
+  font-family: var(--font-heading);
+  font-size: 2rem;
+  font-weight: 900;
+  color: var(--text-dim);
+  opacity: 0.2;
+  line-height: 1;
+}
+
+.node-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.node-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.node-header h4 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 0;
+}
+
+.node-desc {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+  max-width: 600px;
+}
+
+.main-portal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  padding-bottom: 32px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 12px;
+}
+
+.workflow-title-group .label {
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--text-dim);
+  letter-spacing: 0.1em;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.title-select-wrapper {
+  display: flex;
+  align-items: center;
+}
+
+.workflow-select {
+  background: transparent;
+  border: none;
+  font-family: var(--font-heading);
+  font-size: 2rem;
+  font-weight: 800;
+  color: #fff;
+  padding: 0;
+  cursor: pointer;
+  outline: none;
+  border-bottom: 2px solid transparent;
+  transition: all 0.3s;
+}
+
+.workflow-select:hover {
+  color: var(--primary);
+  border-bottom-color: var(--primary-glow);
+}
+
+.execution-status {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  padding: 8px 16px;
+  border-radius: 100px;
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--primary);
+  margin-bottom: 16px;
+}
+
+.pulse-dot {
+  width: 8px;
+  height: 8px;
+  background: var(--primary);
+  border-radius: 50%;
+  box-shadow: 0 0 12px var(--primary);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.4); opacity: 0.5; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.header-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.node-assignment {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 8px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.node-assignment .label {
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--text-dim);
+}
+
+.assign-select {
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 12px;
+  color: var(--text-main);
+  font-size: 0.85rem;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s;
+}
+
+.assign-select:hover {
+  border-color: var(--text-muted);
+}
+
+.node-status-icon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  min-width: 80px;
+}
+
+.icon-success { color: var(--success); filter: drop-shadow(0 0 8px var(--success)); }
+.icon-primary { color: var(--primary); filter: drop-shadow(0 0 8px var(--primary)); }
+.icon-dim { color: var(--border); }
+
+.node-status-icon .status-text {
+  font-size: 0.65rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-dim);
+}
+
+.active-step .node-status-icon .status-text {
+  color: var(--primary);
+}
+
+/* Canvas Footer & Form */
+.canvas-footer {
+  margin-top: 40px;
+  padding-top: 40px;
+  border-top: 1px solid var(--border);
+}
+
+.footer-actions {
+  display: flex;
+  gap: 16px;
+}
+
+.add-step-form {
+  padding: 32px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  box-shadow: var(--shadow-soft);
+}
+
+.form-title {
+  font-family: var(--font-heading);
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: var(--primary);
+  letter-spacing: 0.1em;
+  margin-bottom: 24px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.form-input {
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 18px;
+  color: #fff;
+  font-size: 0.95rem;
+  outline: none;
+  transition: all 0.2s;
+}
+
+.form-input:focus {
   border-color: var(--primary);
-  background: var(--primary-glow);
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.form-input.textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.small {
+  padding: 8px 16px;
+  font-size: 0.85rem;
 }
 
 /* Buttons */
@@ -210,4 +653,51 @@ h1, h2, h3 {
 
 .content-container > * {
   animation: fadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Log Panel Specifics */
+.log-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.log-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+.log-list::-webkit-scrollbar { display: none; }
+
+.log-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.log-time {
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  color: var(--text-dim);
+}
+
+.log-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.log-actor {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: var(--primary);
+  white-space: nowrap;
+}
+
+.log-message {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  line-height: 1.4;
 }

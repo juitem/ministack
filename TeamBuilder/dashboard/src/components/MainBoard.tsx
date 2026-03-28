@@ -19,13 +19,13 @@ export default function MainBoard() {
       <TopNav />
       
       {currentView === 'mission' ? (
-        <div className="content-container fade-in">
+        <div className="content-container">
           <MissionEditor />
           
-          <header className="main-header">
+          <header className="main-portal-header">
             <div className="header-left">
               <div className="workflow-title-group">
-                <span className="label">Current Workflow</span>
+                <span className="label">ACTIVE WORKFLOW</span>
                 <div className="title-select-wrapper">
                   <select 
                     className="workflow-select" 
@@ -41,12 +41,12 @@ export default function MainBoard() {
             </div>
             
             <div className="header-right">
-              <div className="status-badge">
-                <span className="dot animate-pulse"></span>
-                Step {currentStep} of {totalSteps}
+              <div className="execution-status">
+                <span className="pulse-dot"></span>
+                STEP {currentStep} OF {totalSteps}
               </div>
               <div className="header-actions">
-                <button className="secondary-btn">View All Steps</button>
+                <button className="secondary-btn small">View Metrics</button>
                 <button className="primary-btn deploy-btn glow-shadow" onClick={deployWorkflow}>
                   <Rocket size={18} /> Deploy Team
                 </button>

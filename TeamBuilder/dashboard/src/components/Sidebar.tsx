@@ -12,25 +12,24 @@ export default function Sidebar() {
 
   return (
     <aside className="sidebar">
-      <div className="sidebar-header" style={{ marginBottom: '32px' }}>
-        <h2 className="gradient-text" style={{ fontSize: '1.4rem', fontWeight: '800' }}>TEAMBUILDER</h2>
-        <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginTop: '4px' }}>
-          <span className="badge" style={{ background: 'var(--primary-glow)', color: 'var(--primary)', border: '1px solid var(--primary)' }}>OPERATIONAL</span>
-          <span style={{ fontSize: '0.6rem', color: 'var(--text-dim)', fontWeight: '700' }}>v0.3-MAS</span>
+      <div className="sidebar-header">
+        <h2 className="gradient-text">TEAMBUILDER</h2>
+        <div className="system-status">
+          <span className="badge-px">OPERATIONAL</span>
+          <span className="version-tag">v0.4-ZEN</span>
         </div>
       </div>
       
-      <section className="section">
-        <h3 style={{ fontSize: '0.75rem', color: 'var(--text-dim)', letterSpacing: '0.1em', marginBottom: '20px' }}>INTERNAL ASSETS</h3>
+      <section className="internal-assets">
+        <h3 className="section-label">INTERNAL ASSETS</h3>
         <div className="staff-list">
           {localStaff.map(staff => {
             const workload = getWorkload(staff.id);
             return (
               <div 
                 key={staff.id} 
-                className={`role-card ${staff.status === 'Working' ? 'active' : ''} ${staff.roleLevel?.toLowerCase() || ''}`}
+                className={`role-card ${staff.status === 'Working' ? 'active' : ''}`}
                 onClick={() => setSelectedId(staff.id)}
-                style={{cursor: 'pointer'}}
               >
                 <div className="role-main">
                   <span className="icon">{staff.icon}</span>
@@ -38,12 +37,13 @@ export default function Sidebar() {
                     <p className="name">{staff.name}</p>
                     <div className="meta-info">
                       <span className="level-tag">{staff.roleLevel || 'Staff'}</span>
-                      <span className="status">{staff.status}</span>
+                      <span className={`status-dot ${staff.status.toLowerCase()}`}></span>
+                      <span className="status-text">{staff.status}</span>
                     </div>
                   </div>
                 </div>
                 {workload > 0 && (
-                  <div className="workload-badge" title="Jobs in queue">
+                  <div className="workload-badge">
                     {workload}
                   </div>
                 )}
@@ -54,7 +54,7 @@ export default function Sidebar() {
       </section>
 
       <button className="recruit-btn glow-shadow" onClick={() => setMarketOpen(true)}>
-        <Plus size={16} style={{marginRight: 8}}/> Recruit Expert
+        <Plus size={16} /> Recruit Expert
       </button>
     </aside>
   );
