@@ -23,6 +23,7 @@ interface State {
   workflow: string;
   step: number;
   role: string;
+  assignments?: Record<string, string>;
 }
 
 function getResourcePath(type: "role" | "workflow", name: string): string {
@@ -57,14 +58,23 @@ function listItems() {
   
   // 1. 채용된 팀원 (Local Team)
   console.log("\n--- [채용된 팀원 (Local Team)] ---");
-  const roles = new Set<string>();
+  const localRoles: string[] = [];
   if (existsSync(LOCAL_ROLES_DIR)) {
-    readdirSync(LOCAL_ROLES_DIR)
-      .filter((f) => f.endsWith(".md"))
-      .forEach((f) => roles.add(f.slice(0, -3)));
+    const walk = (dir: string) => {
+      readdirSync(dir, { withFileTypes: true }).forEach((dirent) => {
+        const res = path.resolve(dir, dirent.name);
+        if (dirent.isDirectory()) {
+          walk(res);
+        } else if (dirent.name.endsWith(".md")) {
+          const rel = path.relative(LOCAL_ROLES_DIR, res);
+          localRoles.push(rel.slice(0, -3));
+        }
+      });
+    };
+    walk(LOCAL_ROLES_DIR);
   }
-  if (roles.size > 0) {
-    Array.from(roles).sort().forEach((r) => console.log(`- ${r} (현지 상주)`));
+  if (localRoles.length > 0) {
+    localRoles.sort().forEach((r) => console.log(`- ${r} (현지 상주)`));
   } else {
     console.log("(아직 채용된 전담 팀원이 없습니다. 전역 인력을 사용합니다.)");
   }
@@ -89,15 +99,27 @@ function listMarket() {
   console.log("🌍 글로벌 인력 시장 (Global Talent Market)");
   console.log("=".repeat(50));
   if (existsSync(GLOBAL_ROLES_DIR)) {
-    const roles = readdirSync(GLOBAL_ROLES_DIR).filter((f) => f.endsWith(".md"));
-    roles.forEach((f) => {
-      const r = f.slice(0, -3);
-      const isHired = existsSync(path.join(LOCAL_ROLES_DIR, f));
-      const status = isHired ? "[채용됨]" : "[대기 중]";
-      console.log(`- ${r.padEnd(20)} ${status}`);
-    });
+    const walk = (dir: string) => {
+      const category = path.relative(GLOBAL_ROLES_DIR, dir) || "General";
+      const files = readdirSync(dir, { withFileTypes: true });
+      const mdFiles = files.filter((f) => !f.isDirectory() && f.name.endsWith(".md"));
+      
+      if (mdFiles.length > 0) {
+        console.log(`\n[${category.toUpperCase()}]`);
+        mdFiles.forEach((dirent) => {
+          const relPath = path.relative(GLOBAL_ROLES_DIR, path.join(dir, dirent.name));
+          const r = relPath.slice(0, -3);
+          const isHired = existsSync(path.join(LOCAL_ROLES_DIR, relPath));
+          const status = isHired ? "[채용됨]" : "[대기 중]";
+          console.log(`  - ${r.padEnd(30)} ${status}`);
+        });
+      }
+      
+      files.filter((f) => f.isDirectory()).forEach((d) => walk(path.join(dir, d.name)));
+    };
+    walk(GLOBAL_ROLES_DIR);
   }
-  console.log("\n* 명령: 'ministack recruit <이름>'으로 전문가를 내 팀으로 영입하세요.");
+  console.log("\n* 명령: 'ministack recruit <카테고리/이름>'으로 전문가를 영입하세요.");
 }
 
 function recruitPersona(name: string) {
@@ -149,6 +171,56 @@ function onboardPersona(name: string) {
   console.log(`위치: ${source}`);
   console.log("이제 이 파일을 수정하여 전문가의 상세 지침을 완성하세요.");
 }
+
+function clonePersona(sourceName: string, targetName: string) {
+  let source = path.join(LOCAL_ROLES_DIR, `${sourceName}.md`);
+  const target = path.join(LOCAL_ROLES_DIR, `${targetName}.md`);
+
+  if (!existsSync(source)) {
+    source = path.join(GLOBAL_ROLES_DIR, `${sourceName}.md`);
+    if (!existsSync(source)) {
+      console.error(`Error: 원본 전문가 '${sourceName}'을 찾을 수 없습니다.`);
+      return;
+    }
+  }
+
+  if (existsSync(target)) {
+    console.error(`Error: 이미 '${targetName}'이라는 전문가가 존재합니다.`);
+    return;
+  }
+
+  mkdirSync(path.dirname(target), { recursive: true });
+  const content = readFileSync(source, "utf-8");
+  writeFileSync(target, content, "utf-8");
+  console.log(`👥 전문가 '${sourceName}'을(를) 기반으로 새로운 전문가 '${targetName}'(이)가 탄생했습니다.`);
+}
+
+function trainPersona(name: string, knowledge: string) {
+  const p = path.join(LOCAL_ROLES_DIR, `${name}.md`);
+  if (!existsSync(p)) {
+    console.error(`Error: 우리 팀에 '${name}' 전문가가 없습니다.`);
+    return;
+  }
+
+  const learned = `\n\n## 💡 추가 교육된 지식 (Learned Knowledge)\n- ${knowledge}\n`;
+  const content = readFileSync(p, "utf-8");
+  writeFileSync(p, content + learned, "utf-8");
+  console.log(`📖 '${name}' 전문가에게 새로운 지식을 전수했습니다. 이제 더 똑똑해졌습니다!`);
+}
+
+function assignPersona(stepNum: string, roleName: string) {
+  const state = loadState();
+  if (!state.workflow) {
+    console.error("진행 중인 워크플로우가 없습니다.");
+    return;
+  }
+  if (!state.assignments) state.assignments = {};
+  state.assignments[stepNum] = roleName;
+  saveState(state);
+  console.log(`📌 ${stepNum}단계의 담당자로 '${roleName}' 전문가를 배치했습니다.`);
+}
+
+function startWorkflow(name: string) {
   const workflowPath = getResourcePath("workflow", name);
   if (!existsSync(workflowPath)) {
     console.error(`Error: 워크플로우 '${name}'을 찾을 수 없습니다.`);
@@ -183,31 +255,35 @@ async function generatePrompt(userMessage?: string) {
     return;
   }
 
-  let roleMap: Record<number, string> = {};
-  if (state.workflow === "feature") {
-    roleMap = {
-      1: "market_researcher",
-      2: "researcher",
-      3: "product",
-      4: "concept_reviewer",
-      5: "architect",
-      6: "architect",
-      7: "engineer",
-      8: "reviewer",
-      9: "security_reviewer",
-      10: "engineer",
-    };
+  let roleName = "engineer";
+  if (state.assignments && state.assignments[state.step.toString()]) {
+    roleName = state.assignments[state.step.toString()];
   } else {
-    roleMap = {
-      1: "researcher",
-      2: "engineer",
-      3: "reviewer",
-      4: "qa",
-      5: "engineer",
-    };
+    let roleMap: Record<number, string> = {};
+    if (state.workflow === "feature") {
+      roleMap = {
+        1: "market_researcher",
+        2: "researcher",
+        3: "product",
+        4: "concept_reviewer",
+        5: "architect",
+        6: "architect",
+        7: "engineer",
+        8: "reviewer",
+        9: "security_reviewer",
+        10: "engineer",
+      };
+    } else {
+      roleMap = {
+        1: "researcher",
+        2: "engineer",
+        3: "reviewer",
+        4: "qa",
+        5: "engineer",
+      };
+    }
+    roleName = roleMap[state.step] || "engineer";
   }
-
-  const roleName = roleMap[state.step] || "engineer";
   const rolePath = getResourcePath("role", roleName);
   const workflowPath = getResourcePath("workflow", state.workflow);
 
@@ -295,6 +371,18 @@ switch (cmd) {
   case "recruit":
     if (args[1]) recruitPersona(args[1]);
     else console.log("Usage: ministack recruit <name>");
+    break;
+  case "clone":
+    if (args[1] && args[2]) clonePersona(args[1], args[2]);
+    else console.log("Usage: ministack clone <source> <target>");
+    break;
+  case "train":
+    if (args[1] && args[2]) trainPersona(args[1], args.slice(2).join(" "));
+    else console.log("Usage: ministack train <name> <knowledge>");
+    break;
+  case "assign":
+    if (args[1] && args[2]) assignPersona(args[1], args[2]);
+    else console.log("Usage: ministack assign <step> <role>");
     break;
   case "start":
     if (args[1]) startWorkflow(args[1]);

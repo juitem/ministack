@@ -53,11 +53,15 @@ def save_state(state):
 def list_items():
     print(f"\n[현지 프로젝트]: {PROJECT_DIR}")
     
-    # 1. 채용된 팀원 (Local Roles)
+    # 1. 채용된 팀원 (Local Team)
     print("\n--- [채용된 팀원 (Local Team)] ---")
     local_roles = []
     if os.path.exists(LOCAL_ROLES_DIR):
-        local_roles = [f[:-3] for f in os.listdir(LOCAL_ROLES_DIR) if f.endswith('.md')]
+        for root, _, files in os.walk(LOCAL_ROLES_DIR):
+            for f in files:
+                if f.endswith('.md'):
+                    rel_path = os.path.relpath(os.path.join(root, f), LOCAL_ROLES_DIR)
+                    local_roles.append(rel_path[:-3])
     if local_roles:
         for r in sorted(local_roles): print(f"- {r} (현지 상주)")
     else:
@@ -77,12 +81,19 @@ def list_market():
     print("🌍 글로벌 인력 시장 (Global Talent Market)")
     print("="*50)
     if os.path.exists(GLOBAL_ROLES_DIR):
-        roles = [f[:-3] for f in os.listdir(GLOBAL_ROLES_DIR) if f.endswith('.md')]
-        for r in sorted(roles):
-            # 로컬에 이미 있는지 체크
-            status = "[채용됨]" if os.path.exists(os.path.join(LOCAL_ROLES_DIR, f"{r}.md")) else "[대기 중]"
-            print(f"- {r:<20} {status}")
-    print("\n* 명령: 'ministack recruit <이름>'으로 전문가를 내 팀으로 영입하세요.")
+        for root, dirs, files in os.walk(GLOBAL_ROLES_DIR):
+            category = os.path.relpath(root, GLOBAL_ROLES_DIR)
+            if category == ".": category = "General"
+            
+            md_files = [f for f in files if f.endswith('.md')]
+            if md_files:
+                print(f"\n[{category.upper()}]")
+                for f in sorted(md_files):
+                    rel_path = os.path.relpath(os.path.join(root, f), GLOBAL_ROLES_DIR)
+                    r = rel_path[:-3]
+                    status = "[채용됨]" if os.path.exists(os.path.join(LOCAL_ROLES_DIR, f"{r}.md")) else "[대기 중]"
+                    print(f"  - {r:<30} {status}")
+    print("\n* 명령: 'ministack recruit <카테고리/이름>'으로 전문가를 영입하세요.")
 
 def recruit_persona(name):
     if not os.path.exists(LOCAL_ROLES_DIR):
@@ -130,6 +141,53 @@ def onboard_persona(name):
     print(f"✨ 새로운 전문가 '{name}'이(가) 글로벌 인력 시장에 등록되었습니다.")
     print(f"위치: {source}")
     print("이제 이 파일을 수정하여 전문가의 상세 지침을 완성하세요.")
+
+def clone_persona(source_name, target_name):
+    source = os.path.join(LOCAL_ROLES_DIR, f"{source_name}.md")
+    target = os.path.join(LOCAL_ROLES_DIR, f"{target_name}.md")
+    
+    if not os.path.exists(source):
+        # 로컬에 없으면 글로벌에서 찾아봄
+        source = os.path.join(GLOBAL_ROLES_DIR, f"{source_name}.md")
+        if not os.path.exists(source):
+            print(f"Error: 원본 전문가 '{source_name}'을 찾을 수 없습니다.")
+            return
+
+    if os.path.exists(target):
+        print(f"Error: 이미 '{target_name}'이라는 전문가가 존재합니다.")
+        return
+
+    import shutil
+    os.makedirs(os.path.dirname(target), exist_ok=True)
+    shutil.copy(source, target)
+    print(f"👥 전문가 '{source_name}'을(를) 기반으로 새로운 전문가 '{target_name}'(이)가 탄생했습니다.")
+
+def train_persona(name, knowledge):
+    path = os.path.join(LOCAL_ROLES_DIR, f"{name}.md")
+    if not os.path.exists(path):
+        print(f"Error: 우리 팀에 '{name}' 전문가가 없습니다. 먼저 recruit 또는 clone 하세요.")
+        return
+    
+    with open(path, 'a', encoding='utf-8') as f:
+        f.write(f"\n\n## 💡 추가 교육된 지식 (Learned Knowledge)\n- {knowledge}\n")
+    
+    print(f"📖 '{name}' 전문가에게 새로운 지식을 전수했습니다. 이제 더 똑똑해졌습니다!")
+
+def assign_persona(step_num, role_name):
+    state = load_state()
+    if not state.get("workflow"):
+        print("진행 중인 워크플로우가 없습니다.")
+        return
+    
+    # assignments가 state에 없으면 초기화
+    if "assignments" not in state:
+        state["assignments"] = {}
+    
+    state["assignments"][str(step_num)] = role_name
+    save_state(state)
+    print(f"📌 {step_num}단계의 담당자로 '{role_name}' 전문가를 배치했습니다.")
+
+def list_steps():
     state = load_state()
     workflow_name = state.get("workflow")
     if not workflow_name:
@@ -233,12 +291,17 @@ def generate_prompt(user_message=None):
     
     current_step = int(state.get("step", 1))
     
-    if workflow_name == "feature":
-        role_map = {1: "market_researcher", 2: "researcher", 3: "product", 4: "concept_reviewer", 5: "architect", 6: "architect", 7: "engineer", 8: "reviewer", 9: "security_reviewer", 10: "engineer"}
+    # 1. 수동 할당 확인
+    assignments = state.get("assignments", {})
+    if str(current_step) in assignments:
+        role_name = assignments[str(current_step)]
     else:
-        role_map = {1: "researcher", 2: "engineer", 3: "reviewer", 4: "qa", 5: "engineer"}
-    
-    role_name = role_map.get(current_step, "engineer")
+        # 2. 기본 맵 사용
+        if workflow_name == "feature":
+            role_map = {1: "market_researcher", 2: "researcher", 3: "product", 4: "concept_reviewer", 5: "architect", 6: "architect", 7: "engineer", 8: "reviewer", 9: "security_reviewer", 10: "engineer"}
+        else:
+            role_map = {1: "researcher", 2: "engineer", 3: "reviewer", 4: "qa", 5: "engineer"}
+        role_name = role_map.get(current_step, "engineer")
     role_path = get_resource_path('role', role_name)
     workflow_path = get_resource_path('workflow', workflow_name)
     
@@ -285,6 +348,9 @@ MiniStack CLI (위치: {GLOBAL_DIR})
   market                글로벌 인력 시장의 전문가 후보들을 살펴봅기다.
   onboard <name>       새로운 전문가 페르소나를 글로벌 인력 시장에 등록합니다.
   recruit <name>        인력 시장의 전문가를 내 프로젝트 전담 팀원으로 채용합니다.
+  clone <src> <dest>    기존 팀원을 복제하여 새로운 파생 전문가를 만듭니다.
+  train <name> <msg>    팀원에게 새로운 지식을 주입하여 능력을 강화합니다.
+  assign <step> <role>  특정 단계에 전담 전문가를 배치합니다.
   start <workflow>      현재 폴더에서 새로운 프로젝트 워크플로우를 시작합니다.
   status                현재 진행 중인 단계의 상세 정보를 출력합니다.
   steps                 현재 워크플로우의 전체 단계 목록을 보여줍니다.
@@ -318,6 +384,21 @@ def main():
             print("Usage: ministack recruit <persona_name>")
         else:
             recruit_persona(sys.argv[2])
+    elif cmd == "clone":
+        if len(sys.argv) < 4:
+            print("Usage: ministack clone <source> <target>")
+        else:
+            clone_persona(sys.argv[2], sys.argv[3])
+    elif cmd == "train":
+        if len(sys.argv) < 4:
+            print("Usage: ministack train <name> <knowledge_text>")
+        else:
+            train_persona(sys.argv[2], " ".join(sys.argv[3:]))
+    elif cmd == "assign":
+        if len(sys.argv) < 4:
+            print("Usage: ministack assign <step_number> <persona_name>")
+        else:
+            assign_persona(sys.argv[2], sys.argv[3])
     elif cmd == "start":
         if len(sys.argv) < 3:
             print("Usage: ministack start <workflow_name>")

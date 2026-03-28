@@ -30,6 +30,19 @@
 - **`clone <src> <dest>`**: 특정 전문가의 능력을 그대로 복제하여 새로운 파생 전문가 생성.
 - **`train <name> <knowledge>`**: 프로젝트를 통해 얻은 경험이나 추가 지식을 전문가의 페르소나 파일에 주입.
 
+### 3.5. 팀 템플릿 (Team Templates)
+- **Export/Import**: 현재 구성된 전문가 팀(Roles)과 워크플로우를 하나의 '팀 패키지'로 저장하고 공유합니다.
+- **Pre-set Teams**: "표준 커널 개발팀", "풀스택 웹 팀" 등 검증된 조합을 즉시 불러와 프로젝트를 시작합니다.
+
+### 3.6. 에이전트 간 지식 공유 (Context Binding)
+- **Artifact Link**: 이전 단계의 산출물을 다음 단계 전문가에게 자동으로 전달하는 지형적 문맥 공유 채널 구축.
+- **Shared Memory**: 팀원 전체가 참조할 수 있는 프로젝트 공통 지식 저장소(`docs/shared_memory.md`) 운영.
+
+### 3.8. 도구 오케스트레이션 (Tool Inventory & Permission)
+- **Tool Recommendation**: 전문가의 역할(Role)에 최적화된 도구 세트를 시스템이 자동으로 추천합니다.
+- **Selective Enablement**: 에이전트에게 모든 권한을 주는 대신, 사용자가 특정 도구(예: `git`, `read_file`)만 활성화하여 '보안 허리띠'를 채울 수 있습니다.
+- **Dynamic Tool Injection**: 과업(Job)의 난이도에 따라 실시간으로 도구 권한을 추가하거나 회수할 수 있는 UI 제공.
+
 ### 3.3. 과업 실행 (Execution)
 - **`start <workflow>`**: 정의된 시나리오에 따라 프로젝트의 전체 여정 개시.
 - **`assign <step> <role>`**: 특정 단계(Job)에 투입할 전문가(Role)를 명시적으로 지정 (예정).
