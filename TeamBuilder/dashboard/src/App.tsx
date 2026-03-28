@@ -25,7 +25,9 @@ function App() {
     <div className="dashboard-container">
       <Sidebar />
       <MainBoard />
-      <LogPanel />
+      <div className="log-panel-container">
+        <LogPanel />
+      </div>
       <TalentMarketModal />
       <RoleCreatorModal />
       <RoleDetailModal />

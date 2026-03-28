@@ -43,7 +43,7 @@ export default function WorkflowCanvas() {
           else if (stepNumber === currentStep) computedStatus = 'Running';
 
           return (
-            <div key={job.id} className={`job-node glass-panel ${computedStatus.toLowerCase()} ${computedStatus === 'Running' ? 'active-step glow-shadow' : ''}`}>
+            <div key={job.id} className={`job-node ${computedStatus.toLowerCase()} ${computedStatus === 'Running' ? 'active-step' : ''}`}>
               <div className="node-number">{stepNumber}</div>
               
               <div className="node-content">
@@ -53,6 +53,7 @@ export default function WorkflowCanvas() {
                     className="delete-btn"
                     onClick={() => deleteJob(job.id)}
                     title="Delete step"
+                    style={{ background: 'transparent', border: 'none', color: 'var(--text-dim)', cursor: 'pointer' }}
                   >
                     <Trash2 size={16} />
                   </button>
@@ -78,11 +79,11 @@ export default function WorkflowCanvas() {
 
               <div className="node-status">
                 {computedStatus === 'Completed' ? (
-                  <CheckCircle2 color="var(--success)" />
+                  <CheckCircle2 size={24} color="var(--success)" />
                 ) : computedStatus === 'Running' ? (
-                  <Loader2 className="animate-spin" color="var(--primary)" />
+                  <Loader2 size={24} className="animate-spin" color="var(--primary)" />
                 ) : (
-                  <Circle color="#8b949e" />
+                  <Circle size={24} color="var(--border)" />
                 )}
                 <span className="status-text">{computedStatus}</span>
               </div>
@@ -94,11 +95,11 @@ export default function WorkflowCanvas() {
       <div className="canvas-footer mt-8 flex gap-4">
         {!isAdding ? (
           <>
-            <button className="add-step-btn glass-panel flex-1" onClick={() => setIsAdding(true)}>
+            <button className="secondary-btn flex-1" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }} onClick={() => setIsAdding(true)}>
               <Plus size={20} />
               <span>Add New Step</span>
             </button>
-            <button className="save-template-btn glass-panel flex-1" onClick={() => {
+            <button className="secondary-btn flex-1" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }} onClick={() => {
               const name = prompt("Enter template name:", workflowName);
               if (name) saveAsTemplate(name);
             }}>
@@ -108,23 +109,26 @@ export default function WorkflowCanvas() {
           </>
         ) : (
           <div className="add-step-form glass-panel mt-4 w-full">
+            <h4 style={{ marginBottom: '16px', fontSize: '1rem' }}>Forge New Objective</h4>
             <input 
               type="text" 
-              placeholder="Step Title..." 
+              placeholder="Objective Title..." 
               value={newTitle}
               onChange={(e) => setNewTitle(e.target.value)}
               className="form-input"
+              style={{ width: '100%', padding: '12px', background: 'var(--bg-deep)', border: '1px solid var(--border)', borderRadius: '8px', color: '#fff' }}
               autoFocus
             />
             <textarea 
-              placeholder="Description..." 
+              placeholder="Detailed description of the mission step..." 
               value={newDesc}
               onChange={(e) => setNewDesc(e.target.value)}
               className="form-input mt-2"
+              style={{ width: '100%', padding: '12px', background: 'var(--bg-deep)', border: '1px solid var(--border)', borderRadius: '8px', color: '#fff', minHeight: '80px' }}
             />
-            <div className="form-actions mt-3">
-              <button className="cancel-btn" onClick={() => setIsAdding(false)}>Cancel</button>
-              <button className="confirm-btn" onClick={handleAdd}>Add Step</button>
+            <div className="form-actions mt-4" style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+              <button className="secondary-btn" onClick={() => setIsAdding(false)}>Cancel</button>
+              <button className="primary-btn" onClick={handleAdd}>Confirm Step</button>
             </div>
           </div>
         )}

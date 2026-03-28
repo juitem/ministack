@@ -37,7 +37,7 @@ export default function MissionEditor() {
   };
 
   return (
-    <div className="mission-editor glass-panel">
+    <div className="mission-editor">
       <div className="mission-label">🎯 ACTIVE MISSION</div>
       {isEditing ? (
         <div className="mission-input-group">
@@ -47,18 +47,21 @@ export default function MissionEditor() {
             value={tempMission}
             onChange={(e) => setTempMission(e.target.value)}
             onKeyDown={handleKeyDown}
+            autoFocus
           />
           <button className="icon-btn success" onClick={handleSave}><Check size={18} /></button>
         </div>
       ) : (
         <div className="mission-display">
-          <h2 className="mission-text">{mission}</h2>
+          <h1 className="mission-text">{mission}</h1>
           <div className="mission-actions">
-            <button className="icon-btn tool-tip" onClick={generateRecommendation} title="AI Recommend Workflow">
+            <button className="icon-btn" onClick={generateRecommendation} title="AI Recommend Workflow">
               <Wand2 size={16} />
+              <span style={{marginLeft: 4, fontSize: '0.8rem'}}>Optimize</span>
             </button>
             <button className="icon-btn" onClick={() => setIsEditing(true)}>
               <Edit2 size={16} />
+              <span style={{marginLeft: 4, fontSize: '0.8rem'}}>Refine</span>
             </button>
           </div>
         </div>

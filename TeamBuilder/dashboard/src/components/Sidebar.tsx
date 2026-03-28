@@ -11,14 +11,17 @@ export default function Sidebar() {
     jobs.filter(j => j.targetRoleId === staffId && j.status !== 'Completed').length;
 
   return (
-    <aside className="sidebar glass-panel">
-      <div className="sidebar-header">
-        <h2 className="gradient-text">TEAM BUILDER</h2>
-        <span className="badge">v0.3-MAS</span>
+    <aside className="sidebar">
+      <div className="sidebar-header" style={{ marginBottom: '32px' }}>
+        <h2 className="gradient-text" style={{ fontSize: '1.4rem', fontWeight: '800' }}>TEAMBUILDER</h2>
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginTop: '4px' }}>
+          <span className="badge" style={{ background: 'var(--primary-glow)', color: 'var(--primary)', border: '1px solid var(--primary)' }}>OPERATIONAL</span>
+          <span style={{ fontSize: '0.6rem', color: 'var(--text-dim)', fontWeight: '700' }}>v0.3-MAS</span>
+        </div>
       </div>
       
       <section className="section">
-        <h3>Local Staff</h3>
+        <h3 style={{ fontSize: '0.75rem', color: 'var(--text-dim)', letterSpacing: '0.1em', marginBottom: '20px' }}>INTERNAL ASSETS</h3>
         <div className="staff-list">
           {localStaff.map(staff => {
             const workload = getWorkload(staff.id);
