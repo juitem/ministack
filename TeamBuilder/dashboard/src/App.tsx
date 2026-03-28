@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useStore } from './store';
+import './App.css';
 
 import Sidebar from './components/Sidebar';
 import MainBoard from './components/MainBoard';

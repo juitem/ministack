@@ -1,94 +1,70 @@
 :root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow:
-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+  /* Colors - Silken Slate Palette */
+  --bg-deep: #09090b;
+  --bg-surface: #121214;
+  --bg-glass: rgba(18, 18, 20, 0.75);
+  --text-main: #e4e4e7;
+  --text-muted: #a1a1aa;
+  --text-dim: #71717a;
+  
+  --primary: #6366f1; /* Indigo */
+  --primary-glow: rgba(99, 102, 241, 0.2);
+  --accent: #06b6d4; /* Cyan */
+  --success: #10b981;
+  --warning: #f59e0b;
+  --error: #ef4444;
 
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
+  /* Borders & Shadows */
+  --border: rgba(255, 255, 255, 0.06);
+  --border-active: rgba(99, 102, 241, 0.4);
+  --shadow-soft: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
+  --shadow-glow: 0 0 20px rgba(99, 102, 241, 0.15);
+
+  /* Typography */
+  --font-main: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-heading: 'Outfit', sans-serif;
   --mono: ui-monospace, Consolas, monospace;
 
-  font-family: 'Outfit', 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: var(--font-main);
   line-height: 1.5;
   font-weight: 400;
 
   color-scheme: dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #0d1117;
+  color: var(--text-main);
+  background-color: var(--bg-deep);
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-
-  /* Design Tokens */
-  --primary: #58a6ff;
-  --secondary: #21262d;
-  --accent: #bc8cff;
-  --success: #3fb950;
-  --warning: #d29922;
-  --danger: #f85149;
-  --surface: rgba(22, 27, 34, 0.8);
-  --glass: rgba(255, 255, 255, 0.05);
-  --border: rgba(240, 246, 252, 0.1);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow:
-      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
-  }
-
-  #social .button-icon {
-    filter: invert(1) brightness(2);
-  }
+body {
+  margin: 0;
+  overflow: hidden;
 }
 
 #root {
-  width: 100%;
+  width: 100vw;
   height: 100vh;
-  display: flex;
-}
-
-.main-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  overflow: hidden;
 }
 
 /* Glassmorphism Classes */
 .glass-panel {
-  background: var(--glass);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: var(--bg-surface);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: 20px;
+  box-shadow: var(--shadow-soft);
 }
 
 .glow-shadow {
-  box-shadow: 0 0 20px rgba(88, 166, 255, 0.2);
+  box-shadow: var(--shadow-glow);
 }
 
 .gradient-text {
-  background: linear-gradient(90deg, var(--primary), var(--accent));
+  background: linear-gradient(135deg, #fff 0%, var(--text-muted) 100%);
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -99,13 +75,12 @@ body {
 }
 
 h2 {
-  font-family: var(--heading);
-  font-weight: 500;
-  color: var(--text-h);
-  font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  margin: 0 0 8px;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  color: #fff;
+  font-size: 1.5rem;
+  letter-spacing: -0.02em;
+  margin: 0 0 12px;
 }
 p {
   margin: 0;
@@ -120,10 +95,10 @@ code,
 }
 
 code {
-  font-size: 15px;
-  line-height: 135%;
+  font-size: 14px;
   padding: 4px 8px;
-  background: var(--code-bg);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border);
 }
 
 /* Workflow Canvas Enhancements */
