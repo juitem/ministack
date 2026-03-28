@@ -36,42 +36,42 @@ export default function TalentMarketModal() {
 
   return (
     <div className="modal-overlay">
-      <div className="modal-content glass-panel glow-shadow">
-        <div className="modal-header">
-          <div>
+      <div className="modal-content glass-panel glow-shadow-lg">
+        <header className="modal-header">
+          <div className="header-text">
             <h2>Talent Market</h2>
             <p className="subtitle">Recruit global experts to your local team</p>
           </div>
           <div className="header-actions">
-            <button className="secondary-btn" onClick={() => setCreatorOpen(true)}>
-              + Create New Role
+            <button className="secondary-btn small" onClick={() => setCreatorOpen(true)}>
+              + Forge New Role
             </button>
-            <button className="icon-btn" onClick={() => setOpen(false)}>
-              <X size={24} />
+            <button className="icon-btn-close" onClick={() => setOpen(false)}>
+              <X size={20} />
             </button>
           </div>
-        </div>
+        </header>
         
         <div className="market-search">
-          <Search size={18} />
-          <input type="text" placeholder="Search by role or specialty..." />
+          <Search size={18} className="icon-dim" />
+          <input type="text" placeholder="Search by role or specialty..." className="form-input-minimal" />
         </div>
 
         <div className="market-grid">
           {globalStaff.map(staff => (
-            <div key={staff.id} className="market-card">
+            <div key={staff.id} className="market-card glass-panel-compact">
               <div className="card-top">
-                <span className="icon-large">{staff.icon}</span>
-                <span className="badge specialty">{staff.specialty}</span>
+                <span className="staff-icon-large">{staff.icon}</span>
+                <span className="badge-px">{staff.specialty}</span>
               </div>
-              <h3>{staff.name}</h3>
-              <p className="desc">Global standard persona for {staff.specialty} tasks.</p>
+              <h3 className="staff-name">{staff.name}</h3>
+              <p className="staff-desc">Standard persona for {staff.specialty} orchestration.</p>
               <button 
                 className="primary-btn full-width"
                 onClick={() => handleRecruit(staff)}
               >
-                <UserPlus size={16} style={{marginRight: 6}} />
-                Recruit
+                <UserPlus size={16} />
+                <span>Recruit Expert</span>
               </button>
             </div>
           ))}

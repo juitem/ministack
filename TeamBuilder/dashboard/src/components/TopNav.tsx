@@ -10,8 +10,8 @@ export default function TopNav() {
     <nav className="top-nav glass-panel">
       <div className="nav-left">
         <div className="nav-item-indicator">
-          <Zap size={16} className="pulse-primary" />
-          <span className="current-mission-label">System Active: {missionText.substring(0, 20)}...</span>
+          <Zap size={16} className="icon-primary pulse" />
+          <span className="current-mission-label">MISSION: {missionText}</span>
         </div>
       </div>
 
@@ -33,9 +33,9 @@ export default function TopNav() {
       </div>
 
       <div className="nav-right">
-        <div className="system-status">
-          <span className="status-online"></span>
-          <span>ONLINE</span>
+        <div className="system-status-badge">
+          <span className="status-dot ready"></span>
+          <span>SYSTEM ONLINE</span>
         </div>
       </div>
     </nav>
