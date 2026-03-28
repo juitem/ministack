@@ -1,40 +1,50 @@
-# 제품 요구사항 명세서 (PRD): TeamBuilder (v0.1)
+# 제품 요구사항 명세서 (PRD): TeamBuilder AI Orchestrator
 
-## 1. 제품 개요
-**TeamBuilder**는 MiniStack 엔진을 기반으로 하여, 사용자가 복잡한 AI 에이전트 팀을 시각적으로 구성하고 관리할 수 있도록 돕는 "AI 에이전트 오케스트레이션 대시보드"입니다.
+## 1. 제품 비전 (Vision)
+**TeamBuilder**는 AI 에이전트를 단순한 도구가 아닌, 프로젝트별로 '고용'하고 '교육'하며 '배치'하는 **지능형 인력 시장(Talent Market)**으로 취급하는 오케스트레이션 시스템입니다. 사용자는 도메인별 전문가 팀을 동적으로 구성하여 복잡한 과업을 수행합니다.
 
-## 2. 핵심 가치 (Value Proposition)
-- **온디맨드 채용(Recruit)**: 프로젝트 성격에 맞는 전문가를 인력 시장(Global Pool)에서 즉시 영입.
-- **전문가 등록(Onboard)**: 새로운 분야의 전문가 페르소나를 전역 인력 시장에 등록하여 자산화.
-- **전문성 최적화**: 영입된 전문가에게 프로젝트 특유의 도메인 지식을 주입하여 커스터마이징.
+## 2. 핵심 엔티티 정의 (Core Entities)
 
-## 3. 주요 기능 요구사항
+### 2.1. 인력 시장 (Talent Market)
+- **Global Pool**: `ministack` 설치 경로에 위치한 전역 전문가 라이브러리.
+- **Hierarchical Roles**: `category/specialty.md` 구조로 체계화된 전문가 군단 (예: `engineer/kernel`, `reviewer/security`).
 
-### 3.1. 인력 시장 및 채용 (Market & Recruit)
-- **Market Browser**: 전역(`GLOBAL_DIR/roles/`)에 정의된 모든 전문가 후보 살펴보기.
-- **Recruit Command**: 특정 전문가를 현재 프로젝트(`LOCAL_DIR/roles/`)로 영입(복사).
-- **Customize Role**: 영입된 전문가의 도구(Tools)나 지침을 프로젝트 상황에 맞게 즉석에서 수정.
+### 2.2. 프로젝트 팀 (Project Team - Staff)
+- **Local Pool**: 현재 진행 중인 프로젝트 폴더(`${CWD}/roles/`)에 소속된 상주 인력.
+- **Recruited Staff**: 글로벌 시장에서 영입된 전문가.
+- **Cloned & Evolved**: 기존 인력을 복제(`clone`)하거나 교육(`train`)하여 만들어낸 파생형 전문가.
 
-### 3.2. 워크플로우 매니저 (Workflow Manager)
-- `workflows/*.md`를 기반으로 전체 단계를 트리(Tree) 또는 타임라인 형태로 표시.
-- 현재 단계(Current Step) 표시 및 `Next`, `Back`, `Set` 명령을 버튼 인터페이스로 제공.
+### 2.3. 역할(Role) vs 과업(Job)
+- **Role (Who)**: 전문가의 정체성, 도구, 기본 지침 (Persistent Identity).
+- **Job (What)**: 워크플로우의 특정 단계에서 수행해야 할 구체적인 미션과 산출물 정의 (Transient Assignment).
+- **Assignment**: 특정 Job에 가장 적합한 Role을 동적으로 매핑하는 메커니즘.
 
-### 3.3. 산출물 뷰어 (Artifact Viewer)
-- `docs/` 폴더에 생성된 마크다운 결과물을 실시간으로 렌더링하여 확인.
-- 단계별 산출물의 이력을 추적하고 관리.
+## 3. 핵심 기능 요구사항 (Functional Requirements)
 
-### 3.5. 도메인 특화 팀 합성 (Domain-Specific Team Synthesis)
-- 사용자의 목적에 따라 관련 도메인 지식을 페르소나에 자동으로 주입.
-- **예시 시나리오 1 (Web UX)**: React/Next.js 전문가, 접근성(A11y) 전문가, 테일윈드 스타일리스트로 구성된 팀.
-- **예시 시나리오 2 (Kernel SW)**: C/어셈블리 장인, 동시성 제어 전문가, 드라이버 설계 아키텍트로 구성된 팀.
-- **예시 시나리오 3 (Toolchain)**: GCC/LLVM 아키텍처 전문가, 최적화 패스(Optimization Pass) 리뷰어, 명령어 셋(ISA) 분석가로 구성된 팀.
+### 3.1. 팀 포메이션 (Formation)
+- **`market`**: 현재 채용 가능한 글로벌 인력 라인업 조회.
+- **`onboard <name>`**: 새로운 분야의 전문가 페르소나를 글로벌 시장에 정식 등록.
+- **`recruit <name>`**: 글로벌 전문가를 내 프로젝트의 전담 팀원으로 영입.
 
-### 3.6. 지동 입력(Input) 생성기
-- 선택된 팀에 최적화된 초기 "컨텍스트"와 "입력(Message)"을 자동으로 제안.
-- **Frontend**: Vite + React (또는 Bun 기반의 경량 UI)
-- **Backend/CLI**: 기존 MiniStack Engine (Python/TS) 활용
-- **Communication**: Local API 또는 WebSocket을 통한 엔진-UI 연동
+### 3.2. 페르소나 진화 (Evolution)
+- **`clone <src> <dest>`**: 특정 전문가의 능력을 그대로 복제하여 새로운 파생 전문가 생성.
+- **`train <name> <knowledge>`**: 프로젝트를 통해 얻은 경험이나 추가 지식을 전문가의 페르소나 파일에 주입.
 
-## 5. 성공 지표
-- 사용자가 프로젝트 시작부터 배포까지 걸리는 시간 단축.
-- 수동으로 작성하는 프롬프트의 양 감소 (자동 생성 및 템플릿화).
+### 3.3. 과업 실행 (Execution)
+- **`start <workflow>`**: 정의된 시나리오에 따라 프로젝트의 전체 여정 개시.
+- **`assign <step> <role>`**: 특정 단계(Job)에 투입할 전문가(Role)를 명시적으로 지정 (예정).
+- **`prompt`**: [Role의 전문성] + [Job의 구체적 상황]을 결합하여 최적의 AI 지시서 자동 생성.
+
+### 3.4. 상태 관리 및 산출물 (State & Artifacts)
+- **CWD 인식**: 모든 명령어는 현재 폴더의 `state.json`과 `docs/`를 참조하여 프로젝트 독립성 유지.
+- **산출물 이력**: 각 Job의 결과물은 `docs/`에 마크다운 형태로 누적 관리.
+
+## 4. 기술 사양 (Technical Specifications)
+- **엔진**: Python (`ministack.py`) 및 TypeScript (`ministack.ts`)의 기능적 패리티 유지.
+- **데이터 저장**: 데이터베이스 없이 파일 시스템(Markdown, JSON) 기반의 정적 저장 방식 채택.
+- **통합**: `ministack.sh` 래퍼를 통한 원활한 명령어 호출.
+
+## 5. 단계별 로드맵 (Roadmap)
+- **Phase 1 (CLI Foundation)**: [완료] 전역/지역 리소스 관리, Recruit, Clone, Train 엔진 구현.
+- **Phase 2 (Dynamic Assignment)**: [진행 예정] 특정 단계에 원하는 Role을 자유롭게 배치하는 `assign` 로직 강화.
+- **Phase 3 (Web Dashboard)**: [계획] 전문가 배치 및 업무 진행 상황을 한눈에 보는 GUI 인터페이스 구축.
