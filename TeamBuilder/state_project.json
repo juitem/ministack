@@ -22,19 +22,19 @@
   ],
   "jobs": [
     {
-      "id": "j1",
-      "title": "Requirement Analysis",
-      "description": "Analyze product requirements and define core features.",
+      "id": "rec-1774669463617-0",
+      "title": "데이터 수집",
+      "description": "필요한 데이터셋 확보 및 정제",
       "sourceRoleId": null,
       "targetClusterId": null,
-      "targetRoleId": "1",
+      "targetRoleId": null,
       "status": "Pending",
       "stepOrder": 0
     },
     {
-      "id": "j2",
-      "title": "Architecture Design",
-      "description": "Design system architecture and data flow.",
+      "id": "rec-1774669463617-1",
+      "title": "모델 설계",
+      "description": "알고리즘 선정 및 아키텍처 수립",
       "sourceRoleId": null,
       "targetClusterId": null,
       "targetRoleId": null,
@@ -42,34 +42,24 @@
       "stepOrder": 1
     },
     {
-      "id": "j3",
-      "title": "Core Implementation",
-      "description": "Implement the core logic and kernel features.",
+      "id": "rec-1774669463617-2",
+      "title": "학습 및 평가",
+      "description": "모델 트레이닝 및 성능 지표 분석",
       "sourceRoleId": null,
       "targetClusterId": null,
-      "targetRoleId": "qa",
+      "targetRoleId": null,
       "status": "Pending",
       "stepOrder": 2
     },
     {
-      "id": "j4",
-      "title": "Security Audit",
-      "description": "Review code for security vulnerabilities.",
+      "id": "rec-1774669463617-3",
+      "title": "API 배포",
+      "description": "추론 엔진 서버 구축",
       "sourceRoleId": null,
       "targetClusterId": null,
       "targetRoleId": null,
       "status": "Pending",
       "stepOrder": 3
-    },
-    {
-      "id": "j5",
-      "title": "Final Testing",
-      "description": "Perform end-to-end testing and QA.",
-      "sourceRoleId": null,
-      "targetClusterId": null,
-      "targetRoleId": null,
-      "status": "Pending",
-      "stepOrder": 4
     }
   ],
   "clusters": []
