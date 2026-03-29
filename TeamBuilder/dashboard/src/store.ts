@@ -6,6 +6,12 @@ export interface Cluster {
   leadRoleId?: string;
 }
 
+export interface Scenario {
+  id: string;
+  title: string;
+  path: string;
+}
+
 export interface Staff {
   id: string;
   name: string;
@@ -17,6 +23,14 @@ export interface Staff {
   backstory?: string;
   instructions?: string;
   allowedTools: string[];
+  // New Persona/Hybrid fields
+  title?: string;
+  basePersona?: string;
+  style?: string;
+  skillSlots?: string[];
+  reportingLine?: string;
+  source?: 'local' | 'global';
+  body?: string;
 }
 
 export interface LogEntry {
@@ -58,6 +72,9 @@ interface TeamBuilderState {
   globalStaff: Staff[];
   addGlobalStaff: (staff: Staff) => void;
   
+  scenarios: Scenario[];
+  importScenario: (scenarioId: string) => Promise<void>;
+  
   workflowName: string;
   setWorkflowName: (name: string) => void;
   workflows: string[];
@@ -79,7 +96,6 @@ interface TeamBuilderState {
   syncExecutionState: () => Promise<void>;
   syncProjectState: () => Promise<void>;
   
-  // Tracking for sync stability
   isSyncing: boolean;
 }
 
@@ -88,13 +104,10 @@ export const useStore = create<TeamBuilderState>((set) => ({
   currentView: 'mission',
   setView: (view) => set({ currentView: view }),
   
-  mission: "TeamBuilder AI Orchestrator 개발", // Initial placeholder
+  mission: "TeamBuilder AI Orchestrator 개발",
   setMission: (mission) => set({ mission }),
   
-  localStaff: [
-    { id: '1', name: 'engineer/kernel_v2', specialty: 'kernel', status: 'Ready', icon: '🔧', roleLevel: 'Orchestrator', backstory: 'A veteran kernel engineer with a focus on stability and performance.', instructions: 'Always prioritize low-level safety and efficient memory management.', allowedTools: ['shell', 'write'] },
-    { id: '2', name: 'researcher/market', specialty: 'market', status: 'Idle', icon: '📊', roleLevel: 'Manager', backstory: 'Expert in identifying emerging AI patterns and human needs.', instructions: 'Look for unmet needs in the developer experience space.', allowedTools: ['search', 'read'] }
-  ],
+  localStaff: [],
   clusters: [],
   addStaff: (staff) => set((state) => ({ localStaff: [...state.localStaff, staff] })),
   updateStaff: (id, updates) => set((state) => ({
@@ -107,26 +120,44 @@ export const useStore = create<TeamBuilderState>((set) => ({
   setMarketOpen: (isOpen) => set({ isMarketOpen: isOpen }),
   isCreatorOpen: false,
   setCreatorOpen: (isOpen) => set({ isCreatorOpen: isOpen }),
-  globalStaff: [
-    { id: 'g1', name: 'reviewer/security', specialty: 'security', status: 'Idle', icon: '🛡️', roleLevel: 'Contributor', allowedTools: ['read'] },
-    { id: 'g2', name: 'developer/frontend', specialty: 'frontend', status: 'Idle', icon: '💻', roleLevel: 'Contributor', allowedTools: ['shell', 'write'] },
-    { id: 'g3', name: 'manager/product', specialty: 'product', status: 'Idle', icon: '📋', roleLevel: 'Manager', allowedTools: ['search'] },
-    { id: 'g4', name: 'qa/tester', specialty: 'qa', status: 'Idle', icon: '🐛', roleLevel: 'Contributor', allowedTools: ['read', 'write'] },
-  ],
+  globalStaff: [],
   addGlobalStaff: (staff) => set((state) => ({ globalStaff: [staff, ...state.globalStaff] })),
   
+  scenarios: [],
+  importScenario: async (scenarioId: string) => {
+    const { addLog } = useStore.getState();
+    addLog({
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      actor: 'System',
+      message: `Importing scenario '${scenarioId}'...`
+    });
+    try {
+      const res = await fetch('/api/scenarios/import', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ scenarioId })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        set({ mission: data.mission });
+        addLog({
+          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          actor: 'System',
+          message: 'Scenario mission imported successfully.'
+        });
+        // You might want to refresh jobs here if they were part of the import
+      }
+    } catch (e) {
+      console.error("Failed to import scenario:", e);
+    }
+  },
+
   workflowName: "feature",
   setWorkflowName: (name) => set({ workflowName: name }),
   workflows: [],
   totalSteps: 5,
   currentStep: 1,
-  jobs: [
-    { id: 'j1', title: 'Requirement Analysis', description: 'Analyze product requirements and define core features.', status: 'Pending' },
-    { id: 'j2', title: 'Architecture Design', description: 'Design system architecture and data flow.', status: 'Pending' },
-    { id: 'j3', title: 'Core Implementation', description: 'Implement the core logic and kernel features.', status: 'Pending' },
-    { id: 'j4', title: 'Security Audit', description: 'Review code for security vulnerabilities.', status: 'Pending' },
-    { id: 'j5', title: 'Final Testing', description: 'Perform end-to-end testing and QA.', status: 'Pending' },
-  ],
+  jobs: [],
   addJob: (job) => set((state) => ({
     jobs: [...state.jobs, { ...job, id: `j${Date.now()}` }]
   })),
@@ -156,7 +187,6 @@ export const useStore = create<TeamBuilderState>((set) => ({
     });
 
     try {
-      // Map current jobs to assignments { "1": "role_id", ... }
       const assignments: Record<string, string> = {};
       jobs.forEach((job, i) => {
         if (job.targetRoleId) assignments[String(i + 1)] = job.targetRoleId;
@@ -187,10 +217,7 @@ export const useStore = create<TeamBuilderState>((set) => ({
     }
   },
   
-  logs: [
-    { id: '1', time: '09:15', actor: 'System', message: "Loaded workflow 'feature'" },
-    { id: '2', time: '09:16', actor: 'User', message: "Assigned 'kernel_v2' to Step 7" }
-  ],
+  logs: [],
   addLog: (log) => set((state) => ({ 
     logs: [...state.logs, { ...log, id: Date.now().toString() }] 
   })),
@@ -210,7 +237,6 @@ export const useStore = create<TeamBuilderState>((set) => ({
           actor: 'System',
           message: `Saved workflow template as '${fileName}'`
         });
-        // Refresh workflows list
         const workflowsRes = await fetch('/api/workflows');
         if (workflowsRes.ok) {
           const { workflows } = await workflowsRes.json();
@@ -258,7 +284,6 @@ export const useStore = create<TeamBuilderState>((set) => ({
   initialize: async () => {
     set({ isSyncing: true });
     try {
-      // 1. Load Execution State (e.g. current step, running workflow)
       const stateRes = await fetch('/api/state');
       if (stateRes.ok) {
         const data = await stateRes.json();
@@ -266,22 +291,12 @@ export const useStore = create<TeamBuilderState>((set) => ({
         if (data.workflow) set({ workflowName: data.workflow });
       }
 
-      // 2. Load Project Planning State (e.g. jobs, assignments, localStaff)
       const projectRes = await fetch('/api/project');
       if (projectRes.ok) {
         const data = await projectRes.json();
         if (data.jobs) set({ jobs: data.jobs });
         if (data.localStaff) set({ localStaff: data.localStaff });
         if (data.clusters) set({ clusters: data.clusters });
-        
-        // If there are assignments in project.json, apply them to jobs (legacy support)
-        if (data.assignments && data.jobs) {
-          const updatedJobs = data.jobs.map((job: any, i: number) => ({
-             ...job,
-             targetRoleId: job.targetRoleId || data.assignments[String(i + 1)]
-          }));
-          set({ jobs: updatedJobs });
-        }
       }
 
       const missionRes = await fetch('/api/mission');
@@ -290,26 +305,34 @@ export const useStore = create<TeamBuilderState>((set) => ({
         if (content) set({ mission: content });
       }
 
+      const scenariosRes = await fetch('/api/scenarios');
+      if (scenariosRes.ok) {
+        const { scenarios } = await scenariosRes.json();
+        set({ scenarios });
+      }
+
       const rolesRes = await fetch('/api/roles');
       if (rolesRes.ok) {
         const { roles } = await rolesRes.json();
-        const globalStaff = roles.map((r: string, i: number) => {
-          const name = r.replace('.md', '');
+        const globalStaff = roles.map((r: any, i: number) => {
           let icon = '👤';
-          if (name.includes('engineer')) icon = '🔧';
+          const name = r.id;
+          if (name.includes('engineer') || r.role?.includes('Engineer')) icon = '🔧';
           else if (name.includes('researcher')) icon = '📊';
-          else if (name.includes('reviewer')) icon = '🛡️';
+          else if (name.includes('reviewer') || name.includes('auditor')) icon = '🛡️';
           else if (name.includes('product')) icon = '📋';
           else if (name.includes('qa')) icon = '🐛';
           else if (name.includes('architect')) icon = '🏗️';
           
           return {
-            id: `g${i}`,
-            name,
-            specialty: name.split('/')[0],
+            id: `g-${r.id}`,
+            name: r.id,
+            title: r.title,
+            specialty: r.category || 'Specialist',
             status: 'Idle',
             icon,
-            allowedTools: []
+            allowedTools: [],
+            ...r
           };
         });
         set({ globalStaff });
@@ -337,7 +360,7 @@ export const useStore = create<TeamBuilderState>((set) => ({
         if (data.workflow) set({ workflowName: data.workflow });
       }
     } catch (e) {
-      // ignore network errors silently for polling
+      // ignore
     } finally {
       set({ isSyncing: false });
     }
@@ -361,9 +384,6 @@ export const useStore = create<TeamBuilderState>((set) => ({
         if (data.localStaff && !isEqual(currentStaff, data.localStaff)) {
           set({ localStaff: data.localStaff });
         }
-        if (data.clusters) {
-          set({ clusters: data.clusters });
-        }
       }
     } catch (e) {
       // ignore
@@ -373,7 +393,6 @@ export const useStore = create<TeamBuilderState>((set) => ({
   },
 }));
 
-// Helper to persist state (Throttled or simple)
 const persistState = async () => {
   const state = useStore.getState();
   try {
@@ -397,7 +416,6 @@ const persistState = async () => {
   }
 };
 
-// Simple deep equal for objects/arrays
 const isEqual = (a: any, b: any): boolean => {
   if (a === b) return true;
   if (typeof a !== typeof b || a === null || b === null) return false;
@@ -414,15 +432,11 @@ const isEqual = (a: any, b: any): boolean => {
   return false;
 };
 
-// Subscribe to REAL changes (excluding those from server sync) to persist
 useStore.subscribe((state, prevState) => {
-  // If we are currently fetching/syncing from server, don't trigger a save back
   if (state.isSyncing) return;
-
   const missionChanged = state.mission !== prevState.mission;
   const staffChanged = !isEqual(state.localStaff, prevState.localStaff);
   const jobsChanged = !isEqual(state.jobs, prevState.jobs);
-
   if (missionChanged || staffChanged || jobsChanged) {
     persistState();
   }
