@@ -3,8 +3,10 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.tsx'
 
+console.log("Vite App Mounting...");
 if (typeof window !== 'undefined') {
-  window.alert('Gemini Dash Verification: ' + new Date().toISOString());
+  // Simple check to see if JS is running at all
+  document.title = "TeamBuilder | Mounting...";
 }
 
 createRoot(document.getElementById('root')!).render(

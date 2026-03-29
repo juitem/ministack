@@ -2,7 +2,7 @@ import React from 'react';
 import { useStore } from '../store';
 import { Sparkles, FileText, Send, BookOpen } from 'lucide-react';
 
-export const MissionEditor: React.FC = () => {
+const MissionEditor: React.FC = () => {
   const { 
     mission, 
     setMission, 
@@ -113,3 +113,6 @@ export const MissionEditor: React.FC = () => {
     </div>
   );
 };
+
+export default MissionEditor;
+

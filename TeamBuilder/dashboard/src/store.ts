@@ -283,38 +283,41 @@ export const useStore = create<TeamBuilderState>((set) => ({
 
   initialize: async () => {
     set({ isSyncing: true });
+    console.log("Store: Starting initialization...");
     try {
-      const stateRes = await fetch('/api/state');
-      if (stateRes.ok) {
-        const data = await stateRes.json();
-        if (data.step) set({ currentStep: data.step });
-        if (data.workflow) set({ workflowName: data.workflow });
-      }
+      // Parallel fetch with individual error handling
+      const fetchSafely = async (url: string, defaultValue: any = {}) => {
+        try {
+          const res = await fetch(url);
+          if (res.ok) return await res.json();
+          console.warn(`Fetch failed for ${url}: ${res.status}`);
+        } catch (e) {
+          console.error(`Network error for ${url}:`, e);
+        }
+        return defaultValue;
+      };
 
-      const projectRes = await fetch('/api/project');
-      if (projectRes.ok) {
-        const data = await projectRes.json();
-        if (data.jobs) set({ jobs: data.jobs });
-        if (data.localStaff) set({ localStaff: data.localStaff });
-        if (data.clusters) set({ clusters: data.clusters });
-      }
+      const [state, project, mission, scenarios, roles, workflows] = await Promise.all([
+        fetchSafely('/api/state'),
+        fetchSafely('/api/project', { jobs: [], localStaff: [], clusters: [] }),
+        fetchSafely('/api/mission', { content: "" }),
+        fetchSafely('/api/scenarios', { scenarios: [] }),
+        fetchSafely('/api/roles', { roles: [] }),
+        fetchSafely('/api/workflows', { workflows: [] })
+      ]);
 
-      const missionRes = await fetch('/api/mission');
-      if (missionRes.ok) {
-        const { content } = await missionRes.json();
-        if (content) set({ mission: content });
-      }
-
-      const scenariosRes = await fetch('/api/scenarios');
-      if (scenariosRes.ok) {
-        const { scenarios } = await scenariosRes.json();
-        set({ scenarios });
-      }
-
-      const rolesRes = await fetch('/api/roles');
-      if (rolesRes.ok) {
-        const { roles } = await rolesRes.json();
-        const globalStaff = roles.map((r: any, i: number) => {
+      if (state.step) set({ currentStep: state.step });
+      if (state.workflow) set({ workflowName: state.workflow });
+      
+      if (project.jobs) set({ jobs: project.jobs });
+      if (project.localStaff) set({ localStaff: project.localStaff });
+      if (project.clusters) set({ clusters: project.clusters });
+      
+      if (mission.content) set({ mission: mission.content });
+      if (scenarios.scenarios) set({ scenarios: scenarios.scenarios });
+      
+      if (roles.roles) {
+        const globalStaff = roles.roles.map((r: any) => {
           let icon = '👤';
           const name = r.id;
           if (name.includes('engineer') || r.role?.includes('Engineer')) icon = '🔧';
@@ -338,13 +341,11 @@ export const useStore = create<TeamBuilderState>((set) => ({
         set({ globalStaff });
       }
 
-      const workflowsRes = await fetch('/api/workflows');
-      if (workflowsRes.ok) {
-        const { workflows } = await workflowsRes.json();
-        set({ workflows });
-      }
+      if (workflows.workflows) set({ workflows: workflows.workflows });
+      
+      console.log("Store: Initialization complete.");
     } catch (e) {
-      console.error("Failed to initialize store:", e);
+      console.error("Critical error during store initialization:", e);
     } finally {
       set({ isSyncing: false });
     }

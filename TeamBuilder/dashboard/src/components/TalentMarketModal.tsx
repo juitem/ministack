@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { useStore, Staff } from '../store';
-import { X, Search, Plus, User, Zap, Shield, Sparkles } from 'lucide-react';
+import { useStore, type Staff } from '../store';
+import { X, Search, Plus, Zap, Sparkles } from 'lucide-react';
 
-export const TalentMarketModal: React.FC = () => {
+const TalentMarketModal: React.FC = () => {
   const { globalStaff, addStaff, isMarketOpen, setMarketOpen, addLog } = useStore();
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -142,3 +142,6 @@ export const TalentMarketModal: React.FC = () => {
     </div>
   );
 };
+
+export default TalentMarketModal;
+
